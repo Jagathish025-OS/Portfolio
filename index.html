@@ -543,6 +543,38 @@ loadFiles();
 
 }
 
+async function downloadFile(folder, fileName) {
+
+    const path = `${folder}/${fileName}`;
+
+    const { data, error } =
+    await supabaseClient.storage
+    .from("files")
+    .download(path);
+
+    if (error) {
+        alert(error.message);
+        console.error(error);
+        return;
+    }
+
+    const url =
+    window.URL.createObjectURL(data);
+
+    const a =
+    document.createElement("a");
+
+    a.href = url;
+    a.download = fileName;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+}
 
 
 async function loadFiles(){
