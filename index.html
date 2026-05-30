@@ -646,7 +646,9 @@ data.signedUrl,
 );
 
 }
-
+supabaseClient.storage
+.from("files")
+.remove([path])
 </script>
 
 </body>
