@@ -581,7 +581,41 @@ async function downloadFile(folder, fileName) {
     window.URL.revokeObjectURL(url);
 }
 
+async function previewFile(
+folder,
+fileName
+){
 
+const path =
+`${folder}/${fileName}`;
+
+const {
+data,
+error
+
+} =
+await supabaseClient
+.storage
+.from("files")
+.createSignedUrl(
+path,
+300
+);
+
+if(error){
+
+popup(error.message);
+
+return;
+
+}
+
+window.open(
+data.signedUrl,
+"_blank"
+);
+
+}
 async function loadFiles(){
 
 const user =
@@ -643,6 +677,20 @@ if(file.metadata && file.metadata.size){
     const actions =
     document.createElement("div");
 
+const previewBtn =
+document.createElement("button");
+
+previewBtn.innerText =
+"Preview";
+
+previewBtn.style.marginRight =
+"10px";
+
+previewBtn.onclick = () =>
+previewFile(
+    user.id,
+    file.name
+);
     const downloadBtn =
     document.createElement("button");
 
@@ -685,8 +733,9 @@ if(file.metadata && file.metadata.size){
         loadFiles();
     };
 
-    actions.appendChild(downloadBtn);
-    actions.appendChild(deleteBtn);
+    actions.appendChild(previewBtn);
+actions.appendChild(downloadBtn);
+actions.appendChild(deleteBtn);
 
     row.appendChild(name);
     row.appendChild(actions);
