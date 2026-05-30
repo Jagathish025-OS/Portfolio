@@ -534,19 +534,32 @@ file
 
 if(error){
 
-popup(error.message);
+    popup(error.message);
 
-return;
+    return;
 
 }
+
+await fetch(
+    "https://jagathish-backend.onrender.com/api/save-file",
+    {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            user_id:user.id,
+            filename:file.name,
+            size:file.size
+        })
+    }
+);
 
 popup(
 "Upload Success"
 );
 
 loadFiles();
-
-}
 
 async function downloadFile(folder, fileName) {
 
