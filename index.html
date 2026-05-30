@@ -210,8 +210,13 @@ Logout
 
 <div class="info">
 
-<h3>
-<div class="info">
+<div id="statsBox">
+    <h3>Storage Statistics</h3>
+    <p>Total Files: <span id="totalFiles">0</span></p>
+    <p>Total Size: <span id="totalSize">0 MB</span></p>
+</div>
+
+<br>
 
 <h3>Upload File</h3>
 
@@ -609,8 +614,15 @@ if(data.length===0){
 }
 
 list.innerHTML="";
+let totalFiles = 0;
+let totalBytes = 0;
 
 data.forEach(file=>{
+totalFiles++;
+
+if(file.metadata && file.metadata.size){
+    totalBytes += file.metadata.size;
+}
 
     const row =
     document.createElement("div");
@@ -682,6 +694,12 @@ data.forEach(file=>{
     list.appendChild(row);
 
 });
+
+document.getElementById("totalFiles").innerText =
+totalFiles;
+
+document.getElementById("totalSize").innerText =
+(totalBytes / 1024 / 1024).toFixed(2) + " MB";
 
 }
 </script>
