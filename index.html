@@ -549,106 +549,112 @@ async function loadFiles(){
 
 const user =
 (
-await supabaseClient
-.auth
-.getUser()
+    await supabaseClient
+    .auth
+    .getUser()
 ).data.user;
 
 const {
-
-data,
-error
-
+    data,
+    error
 } =
 await supabaseClient
 .storage
 .from("files")
-.list(
-user.id
-);
+.list(user.id);
 
 const list =
-document.getElementById(
-"fileList"
-);
+document.getElementById("fileList");
 
 if(error){
-
-list.innerHTML =
-"Cannot load files";
-
-return;
-
+    list.innerHTML="Cannot load files";
+    return;
 }
 
 if(data.length===0){
-
-list.innerHTML =
-"No files";
-
-return;
-
+    list.innerHTML="No files";
+    return;
 }
 
 list.innerHTML="";
 
 data.forEach(file=>{
 
-const item =
-document.createElement(
-"div"
-);
+    const row =
+    document.createElement("div");
 
-item.style.marginBottom=
-"12px";
+    row.style.display="flex";
+    row.style.justifyContent="space-between";
+    row.style.alignItems="center";
+    row.style.padding="10px";
+    row.style.marginBottom="10px";
+    row.style.background="#16253d";
+    row.style.borderRadius="10px";
 
-item.style.cursor=
-"pointer";
+    const name =
+    document.createElement("span");
 
-item.innerHTML=
-"📄 " + file.name;
+    name.innerHTML="📄 " + file.name;
 
-item.onclick =
-()=>downloadFile(
-user.id,
-file.name
-);
+    const actions =
+    document.createElement("div");
 
-list.appendChild(item);
+    const downloadBtn =
+    document.createElement("button");
+
+    downloadBtn.innerText="Download";
+
+    downloadBtn.onclick=()=>downloadFile(
+        user.id,
+        file.name
+    );
+
+    const deleteBtn =
+    document.createElement("button");
+
+    deleteBtn.innerText="Delete";
+
+    deleteBtn.style.marginLeft="10px";
+    deleteBtn.style.background="crimson";
+    deleteBtn.style.color="white";
+
+    deleteBtn.onclick=async()=>{
+
+        if(!confirm("Delete file?"))
+        return;
+
+        const { error } =
+        await supabaseClient
+        .storage
+        .from("files")
+        .remove([
+            `${user.id}/${file.name}`
+        ]);
+
+        if(error){
+            popup(error.message);
+            return;
+        }
+
+        popup("File Deleted");
+
+        loadFiles();
+    };
+
+    actions.appendChild(downloadBtn);
+    actions.appendChild(deleteBtn);
+
+    row.appendChild(name);
+    row.appendChild(actions);
+
+    list.appendChild(row);
 
 });
 
 }
 
-
-
-async function downloadFile(
-folder,
-fileName
-){
-
-const {
-
-data
-
-} =
-await supabaseClient
-.storage
-.from("files")
-.createSignedUrl(
-`${folder}/${fileName}`,
-60
-);
-
-window.open(
-data.signedUrl,
-"_blank"
-);
-
 }
-supabaseClient.storage
-.from("files")
-.remove([path])
+
 </script>
 
 </body>
