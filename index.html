@@ -248,7 +248,14 @@ Drag File Here
 </div>
 
 <br>
+<h3>Sync Status</h3>
 
+<p>
+Files In Database:
+<span id="dbFiles">0</span>
+</p>
+
+<br>
 <h3>Stored Files</h3>
 
 <br>
@@ -460,6 +467,7 @@ document.getElementById(
 "welcomeEmail"
 ).innerText = email;
 loadFiles();
+loadMetadataCount();
 
 }
 
@@ -764,6 +772,25 @@ totalFiles;
 
 document.getElementById("totalSize").innerText =
 (totalBytes / 1024 / 1024).toFixed(2) + " MB";
+
+}
+async function loadMetadataCount(){
+
+    const user =
+    (await supabaseClient.auth.getUser())
+    .data.user;
+
+    const res =
+    await fetch(
+        `https://jagathish-backend.onrender.com/api/metadata/${user.id}`
+    );
+
+    const data =
+    await res.json();
+
+    document.getElementById(
+        "dbFiles"
+    ).innerText = data.length;
 
 }
 </script>
