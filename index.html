@@ -211,7 +211,50 @@ Logout
 <div class="info">
 
 <h3>
-Cloud Ready
+<div class="info">
+
+<h3>Upload File</h3>
+
+<br>
+
+<input
+type="file"
+id="fileInput">
+
+<br><br>
+
+<button
+class="main-btn"
+onclick="uploadFile()">
+Upload
+</button>
+
+<br><br>
+
+<div id="dropZone"
+style="
+border:2px dashed #38bdf8;
+padding:40px;
+text-align:center;
+border-radius:15px;
+margin-top:15px;
+">
+Drag File Here
+</div>
+
+<br>
+
+<h3>Stored Files</h3>
+
+<br>
+
+<div id="fileList">
+
+Loading files...
+
+</div>
+
+</div>
 </h3>
 
 <br>
@@ -440,6 +483,7 @@ dashboardPage.classList.remove(
 document.getElementById(
 "welcomeEmail"
 ).innerText = email;
+loadFiles();
 
 }
 
@@ -477,6 +521,160 @@ session.user.email
 }
 
 checkSession();
+
+async function uploadFile(){
+
+const file =
+document.getElementById(
+"fileInput"
+).files[0];
+
+if(!file){
+
+popup("Choose file");
+
+return;
+
+}
+
+const user =
+(
+await supabaseClient
+.auth
+.getUser()
+).data.user;
+
+const path =
+`${user.id}/${Date.now()}_${file.name}`;
+
+const { error } =
+await supabaseClient
+.storage
+.from("files")
+.upload(
+path,
+file
+);
+
+if(error){
+
+popup(error.message);
+
+return;
+
+}
+
+popup(
+"Upload Success"
+);
+
+loadFiles();
+
+}
+
+
+
+async function loadFiles(){
+
+const user =
+(
+await supabaseClient
+.auth
+.getUser()
+).data.user;
+
+const {
+
+data,
+error
+
+} =
+await supabaseClient
+.storage
+.from("files")
+.list(
+user.id
+);
+
+const list =
+document.getElementById(
+"fileList"
+);
+
+if(error){
+
+list.innerHTML =
+"Cannot load files";
+
+return;
+
+}
+
+if(data.length===0){
+
+list.innerHTML =
+"No files";
+
+return;
+
+}
+
+list.innerHTML="";
+
+data.forEach(file=>{
+
+const item =
+document.createElement(
+"div"
+);
+
+item.style.marginBottom=
+"12px";
+
+item.style.cursor=
+"pointer";
+
+item.innerHTML=
+"📄 " + file.name;
+
+item.onclick =
+()=>downloadFile(
+user.id,
+file.name
+);
+
+list.appendChild(item);
+
+});
+
+}
+
+
+
+async function downloadFile(
+folder,
+fileName
+){
+
+const {
+
+data
+
+} =
+await supabaseClient
+.storage
+.from("files")
+.createSignedUrl(
+`${folder}/${fileName}`,
+60
+);
+
+window.open(
+data.signedUrl,
+"_blank"
+);
+
+}
 
 </script>
 
