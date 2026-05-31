@@ -535,41 +535,33 @@ const { error } =
 await supabaseClient
 .storage
 .from("files")
-.upload(
-path,
-file
-);
+.upload(path,file);
 
 if(error){
-
     popup(error.message);
-
     return;
-
 }
 
 await fetch(
-    "https://jagathish-backend.onrender.com/api/save-file",
-    {
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-            user_id:user.id,
-            filename:file.name,
-            size:file.size
-        })
-    }
-);
+"https://jagathish-backend.onrender.com/api/save-file",
+{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        user_id:user.id,
+        filename:file.name,
+        size:file.size,
+        storage_path:path
+    })
+});
 
-popup(
-"Upload Success"
-);
-
+popup("Upload Success");
 loadFiles();
+loadMetadataCount();
 
-}
+} // <-- close uploadFile()
 
 async function downloadFile(folder, fileName) {
 
