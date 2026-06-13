@@ -335,6 +335,27 @@
       transform: translateY(-1px);
     }
 
+
+    .delete-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.25);
+      border-radius: 8px;
+      color: #f87171;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .delete-btn svg { width:12px; height:12px; stroke:currentColor; stroke-width:2.5; fill:none; flex-shrink:0; }
+    .delete-btn:hover { background: rgba(248,113,113,0.18); border-color: rgba(248,113,113,0.5); transform: translateY(-1px); }
+    .delete-btn:active { transform: scale(0.96); }
+    .delete-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
     .copy-btn.copied {
       background: rgba(74,222,128,0.12);
       border-color: rgba(74,222,128,0.3);
@@ -527,7 +548,6 @@ const SUPABASE_ANON_KEY = "sb_publishable_cdCtff0oXM7b-Bv4iEJ7Kg_tMEnhr38";
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* Map to store note content safely - avoids inline JS escaping issues */
 const noteMap = new Map();
 
 /* === CHAR COUNT === */
@@ -597,6 +617,10 @@ function renderNotes(notes) {
             <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             Copy
           </button>
+          <button class="delete-btn" data-id="${note.id}" onclick="deleteNote(this)">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Delete
+          </button>
         </div>
       </div>
       <div class="note-content">${escaped}</div>
@@ -611,58 +635,76 @@ function renderNotes(notes) {
   });
 }
 
+
+
 /* === COPY === */
 async function copyNote(btn) {
   const content = noteMap.get(btn.dataset.id) || "";
   const defaultHTML = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
   const copiedHTML  = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
   const markDone = () => {
-    btn.classList.add("copied");
-    btn.innerHTML = copiedHTML;
+    btn.classList.add("copied"); btn.innerHTML = copiedHTML;
     showToast("✓ Copied to clipboard");
     setTimeout(() => { btn.classList.remove("copied"); btn.innerHTML = defaultHTML; }, 2500);
   };
-
-  // Layer 1: Modern clipboard API
   if (navigator.clipboard && window.isSecureContext) {
     try { await navigator.clipboard.writeText(content); markDone(); return; } catch(_) {}
   }
-
-  // Layer 2: execCommand with visible textarea (opacity:0 blocks iOS/Android)
   try {
     const ta = document.createElement("textarea");
-    ta.value = content;
-    ta.setAttribute("readonly", "");
+    ta.value = content; ta.setAttribute("readonly","");
     ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;opacity:0.01;font-size:16px;";
-    document.body.appendChild(ta);
-    ta.focus();
+    document.body.appendChild(ta); ta.focus();
     if (/ipad|iphone/i.test(navigator.userAgent)) {
-      const r = document.createRange();
-      r.selectNodeContents(ta);
-      const s = window.getSelection();
-      s.removeAllRanges();
-      s.addRange(r);
+      const r = document.createRange(); r.selectNodeContents(ta);
+      const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
     }
     ta.setSelectionRange(0, 9999);
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     if (ok) { markDone(); return; }
   } catch(_) {}
-
-  // Layer 3: Show modal with pre-selected text
   const overlay = document.getElementById("cmOverlay");
   const textEl  = document.getElementById("cmText");
-  textEl.textContent = content;
-  overlay.classList.add("open");
-  requestAnimationFrame(() => {
-    try {
-      const r = document.createRange();
-      r.selectNodeContents(textEl);
-      const s = window.getSelection();
-      s.removeAllRanges();
-      s.addRange(r);
-    } catch(_) {}
-  });
+  if (overlay && textEl) {
+    textEl.textContent = content; overlay.classList.add("open");
+    requestAnimationFrame(() => {
+      try { const r = document.createRange(); r.selectNodeContents(textEl); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch(_) {}
+    });
+  }
+}
+
+/* === DELETE === */
+async function deleteNote(btn) {
+  const id = btn.dataset.id;
+  if (!confirm("Delete this note?")) return;
+  btn.disabled = true;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" style="animation:spin 0.8s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>`;
+  const { error } = await db.from("notes").delete().eq("id", id);
+  if (error) {
+    showToast("⚠ Could not delete note");
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg> Delete`;
+    return;
+  }
+  const card = btn.closest(".note-card");
+  card.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+  card.style.opacity = "0"; card.style.transform = "scale(0.95)";
+  setTimeout(() => {
+    card.remove();
+    noteMap.delete(id);
+    if (!document.querySelector(".note-card")) {
+      document.getElementById("notesFeed").innerHTML = `<div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <p>No notes yet</p>
+        <small>Publish something above — it'll appear here instantly on every device</small>
+      </div>`;
+    }
+    showToast("🗑 Note deleted");
+  }, 300);
 }
 
 /* === CREATE NOTE === */
@@ -725,6 +767,10 @@ db.channel("notes-live")
           <button class="copy-btn" data-id="${note.id}" onclick="copyNote(this)">
             <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             Copy
+          </button>
+          <button class="delete-btn" data-id="${note.id}" onclick="deleteNote(this)">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Delete
           </button>
         </div>
       </div>
