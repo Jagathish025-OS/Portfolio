@@ -1,758 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Jagathish Cloud</title>
-
-<link rel="stylesheet" href="styles.css">
-<link
-rel="preconnect"
-href="https://fonts.googleapis.com">
-
-<link
-rel="preconnect"
-href="https://fonts.gstatic.com"
-crossorigin>
-
-<link
-href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-rel="stylesheet">
-
-<script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jagathish Cloud</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-<div class="bg-glow"></div>
+
+<!-- ===== LOGIN CARD ===== -->
 <div class="card" id="authPage">
 
-    <h1>☁ Jagathish Cloud</h1>
+  <div class="brand-logo">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4 4 0 003 15z"/>
+      </svg>
+    </div>
+    <h1>Jagathish Cloud</h1>
+  </div>
 
-    <p class="subtitle">
-        Secure File Manager
-    </p>
+  <p class="subtitle">Secure file storage, always within reach</p>
 
-    <div class="tabs">
+  <div class="tabs">
+    <button id="loginTab" class="active">Login</button>
+    <button id="signupTab">Sign Up</button>
+  </div>
 
-        <button id="loginTab" class="active">
-            Login
-        </button>
+  <div class="input-group">
+    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+    <input type="email" id="email" placeholder="Email address">
+  </div>
 
-        <button id="signupTab">
-            Sign Up
-        </button>
+  <div class="input-group">
+    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0110 0v4"/>
+    </svg>
+    <input type="password" id="password" placeholder="Password">
+  </div>
 
+  <button id="authBtn" class="main-btn">Login</button>
+
+</div>
+
+
+<!-- ===== DASHBOARD ===== -->
+<div class="card dashboard hidden" id="dashboardPage">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4 4 0 003 15z"/>
+        </svg>
+      </div>
+      <div class="topbar-text">
+        <h1>Dashboard</h1>
+        <p id="welcomeEmail">Loading…</p>
+      </div>
     </div>
 
-    <input
-    type="email"
-    id="email"
-    placeholder="Email">
-
-    <input
-    type="password"
-    id="password"
-    placeholder="Password">
-
-    <button
-    id="authBtn"
-    class="main-btn">
-        Login
+    <button class="logout-btn" onclick="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Sign out
     </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Total Files
+      </div>
+      <div class="stat-value" id="totalFiles">—</div>
+      <div class="stat-sub">in your cloud</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Storage Used
+      </div>
+      <div class="stat-value" id="totalSize">—</div>
+      <div class="storage-bar-wrap">
+        <div class="storage-bar-fill" id="storageBar"></div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Sync Status
+      </div>
+      <div class="stat-value" id="dbFiles">—</div>
+      <div class="stat-sub">
+        <span class="sync-badge">
+          <span class="sync-dot"></span>
+          Synced
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Upload Panel -->
+  <div class="panel">
+
+    <div class="panel-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 16 12 12 8 16"/>
+        <line x1="12" y1="12" x2="12" y2="21"/>
+        <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+      </svg>
+      <h3>Upload File</h3>
+    </div>
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 16 12 12 8 16"/>
+        <line x1="12" y1="12" x2="12" y2="21"/>
+        <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+      </svg>
+      <p>Drag a file here, or <span>browse to upload</span></p>
+    </div>
+
+    <div class="upload-actions">
+      <div class="file-chosen" id="fileChosen">No file selected</div>
+      <button class="upload-btn" onclick="uploadFile()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"/>
+          <line x1="12" y1="12" x2="12" y2="21"/>
+          <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/>
+        </svg>
+        Upload
+      </button>
+    </div>
+
+    <div class="progress-wrap" id="progressContainer">
+      <div class="progress-fill" id="progressBar"></div>
+    </div>
+
+  </div>
+
+  <!-- Files Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+      </svg>
+      <h3>Stored Files</h3>
+    </div>
+    <div id="fileList">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+        </svg>
+        <p>Loading files…</p>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 
-<div
-class="dashboard hidden"
-id="dashboardPage">
-
-    <div class="topbar">
-
-        <div>
-
-            <h1>
-                Jagathish Cloud
-            </h1>
-
-            <p id="welcomeEmail">
-                Loading...
-            </p>
-
-        </div>
-
-        <button
-        class="logout-btn"
-        onclick="logout()">
-            Logout
-        </button>
-
-    </div>
-
-    <div class="stats-grid">
-
-        <div class="stat-card">
-
-            <h3>Total Files</h3>
-
-            <div
-            class="stat-value"
-            id="totalFiles">
-                0
-            </div>
-
-        </div>
-
-        <div class="stat-card">
-
-            <h3>Storage Used</h3>
-
-            <div
-            class="stat-value"
-            id="totalSize">
-                0 MB
-            </div>
-
-        </div>
-
-        <div class="stat-card">
-
-            <h3>Database Sync</h3>
-
-            <div
-            class="stat-value"
-            id="dbFiles">
-                0
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="upload-card">
-
-        <h3>Upload File</h3>
-
-        <input
-        type="file"
-        id="fileInput">
-
-        <button
-        class="main-btn"
-        onclick="uploadFile()">
-            Upload File
-        </button>
-
-        <div
-        id="progressContainer"
-        style="display:none;">
-
-            <div id="progressBar">
-                0%
-            </div>
-
-        </div>
-
-        <div id="dropZone">
-            ☁ Drag & Drop Files Here
-        </div>
-
-    </div>
-
-    <div class="files-card">
-
-        <h3>Stored Files</h3>
-
-        <div id="fileList">
-            Loading files...
-        </div>
-
-    </div>
-
-</div>
-
-
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="supabase.js"></script>
 
 <script>
 
+/* ===== AUTH UI ===== */
 let mode = "login";
 
-const authPage =
-document.getElementById("authPage");
-
-const dashboardPage =
-document.getElementById("dashboardPage");
-
-const loginTab =
-document.getElementById("loginTab");
-
-const signupTab =
-document.getElementById("signupTab");
-
-const authBtn =
-document.getElementById("authBtn");
-
+const authPage      = document.getElementById("authPage");
+const dashboardPage = document.getElementById("dashboardPage");
+const loginTab      = document.getElementById("loginTab");
+const signupTab     = document.getElementById("signupTab");
+const authBtn       = document.getElementById("authBtn");
 
 loginTab.onclick = () => {
-
-mode = "login";
-
-loginTab.classList.add("active");
-
-signupTab.classList.remove("active");
-
-authBtn.innerText = "Login";
-
+  mode = "login";
+  loginTab.classList.add("active");
+  signupTab.classList.remove("active");
+  authBtn.innerText = "Login";
 };
-
 
 signupTab.onclick = () => {
-
-mode = "signup";
-
-signupTab.classList.add("active");
-
-loginTab.classList.remove("active");
-
-authBtn.innerText =
-"Create Account";
-
+  mode = "signup";
+  signupTab.classList.add("active");
+  loginTab.classList.remove("active");
+  authBtn.innerText = "Create Account";
 };
 
+/* ===== FILE PICKER LABEL ===== */
+document.getElementById("fileInput").addEventListener("change", function() {
+  const chosen = document.getElementById("fileChosen");
+  chosen.textContent = this.files[0] ? this.files[0].name : "No file selected";
+});
 
-function popup(message){
+/* ===== DRAG & DROP ===== */
+const dropZone = document.getElementById("dropZone");
 
-const p =
-document.createElement("div");
+["dragenter","dragover"].forEach(evt =>
+  dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add("dragging"); })
+);
 
-p.className="popup";
+["dragleave","drop"].forEach(evt =>
+  dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove("dragging"); })
+);
 
-p.innerText=message;
+dropZone.addEventListener("drop", e => {
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById("fileInput").files = dt.files;
+  document.getElementById("fileChosen").textContent = file.name;
+});
 
-document.body.appendChild(p);
-
-setTimeout(()=>{
-
-p.remove();
-
-},3000);
-
+/* ===== POPUP TOAST ===== */
+function popup(message, type = "") {
+  const p = document.createElement("div");
+  p.className = "popup" + (type ? " " + type : "");
+  p.innerText = message;
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 3200);
 }
 
-
+/* ===== AUTH ===== */
 authBtn.onclick = async () => {
+  const email    = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-const email =
-document.getElementById("email").value;
+  if (!email || !password) { popup("Enter email and password", "error"); return; }
 
-const password =
-document.getElementById("password").value;
+  if (mode === "signup") {
+    authBtn.innerText = "Creating…";
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    authBtn.innerText = "Create Account";
+    if (error) { popup(error.message, "error"); return; }
+    await supabaseClient.from("profiles").insert([{ id: data.user.id, email }]);
+    popup("Account created! Please login.", "success");
+    mode = "login"; loginTab.click();
+    return;
+  }
 
-if(!email || !password){
-
-popup(
-"Enter email and password"
-);
-
-return;
-
-}
-
-
-if(mode==="signup"){
-
-authBtn.innerText =
-"Creating...";
-
-const {data,error} =
-await supabaseClient.auth.signUp({
-
-email,
-password
-
-});
-
-
-authBtn.innerText =
-"Create Account";
-
-
-if(error){
-
-popup(error.message);
-
-return;
-
-}
-
-
-await supabaseClient
-.from("profiles")
-.insert([{
-
-id:data.user.id,
-email:email
-
-}]);
-
-
-popup(
-"Account created successfully. Please login."
-);
-
-mode="login";
-
-loginTab.click();
-
-return;
-
-}
-
-
-authBtn.innerText =
-"Logging In...";
-
-
-const {data,error} =
-await supabaseClient
-.auth
-.signInWithPassword({
-
-email,
-password
-
-});
-
-
-authBtn.innerText =
-"Login";
-
-
-if(error){
-
-popup(
-"Invalid email or password"
-);
-
-return;
-
-}
-
-
-showDashboard(
-data.user.email
-);
-
+  authBtn.innerText = "Logging in…";
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  authBtn.innerText = "Login";
+  if (error) { popup("Invalid email or password", "error"); return; }
+  showDashboard(data.user.email);
 };
 
-
-async function showDashboard(email){
-
-authPage.classList.add(
-"hidden"
-);
-
-dashboardPage.classList.remove(
-"hidden"
-);
-
-document.getElementById(
-"welcomeEmail"
-).innerText = email;
-loadFiles();
-loadMetadataCount();
-
+async function showDashboard(email) {
+  authPage.classList.add("hidden");
+  dashboardPage.classList.remove("hidden");
+  document.getElementById("welcomeEmail").innerText = email;
+  loadFiles();
+  loadMetadataCount();
 }
 
-
-async function logout(){
-
-await supabaseClient.auth.signOut();
-
-location.reload();
-
+async function logout() {
+  await supabaseClient.auth.signOut();
+  location.reload();
 }
 
-
-async function checkSession(){
-
-const {
-
-data:{
-session
-}
-
-} = await supabaseClient
-.auth
-.getSession();
-
-
-if(session){
-
-showDashboard(
-session.user.email
-);
-
-}
-
+async function checkSession() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) showDashboard(session.user.email);
 }
 
 checkSession();
 
-async function uploadFile(){
+/* ===== UPLOAD ===== */
+async function uploadFile() {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) { popup("Choose a file first", "error"); return; }
 
-const file =
-document.getElementById("fileInput").files[0];
+  const user = (await supabaseClient.auth.getUser()).data.user;
+  const path = `${user.id}/${Date.now()}_${file.name}`;
 
-if(!file){
-    popup("Choose file");
-    return;
+  const progressWrap = document.getElementById("progressContainer");
+  const progressFill = document.getElementById("progressBar");
+  progressWrap.style.display = "block";
+  progressFill.style.width = "30%";
+
+  const { error } = await supabaseClient.storage.from("files").upload(path, file);
+
+  progressFill.style.width = "100%";
+  setTimeout(() => { progressWrap.style.display = "none"; progressFill.style.width = "0%"; }, 600);
+
+  if (error) { popup(error.message, "error"); return; }
+
+  popup("File uploaded!", "success");
+  document.getElementById("fileInput").value = "";
+  document.getElementById("fileChosen").textContent = "No file selected";
+  loadFiles();
+  loadMetadataCount();
 }
 
-const user =
-(await supabaseClient.auth.getUser()).data.user;
-
-const path =
-`${user.id}/${Date.now()}_${file.name}`;
-
-const { error } =
-await supabaseClient
-.storage
-.from("files")
-.upload(path,file);
-
-if(error){
-    popup(error.message);
-    return;
-}
-
-popup("Upload Success");
-
-loadFiles();
-loadMetadataCount();
-}
-
+/* ===== DOWNLOAD ===== */
 async function downloadFile(folder, fileName) {
-
-    const path = `${folder}/${fileName}`;
-
-    const { data, error } =
-    await supabaseClient.storage
-    .from("files")
-    .download(path);
-
-    if (error) {
-        alert(error.message);
-        console.error(error);
-        return;
-    }
-
-    const url =
-    window.URL.createObjectURL(data);
-
-    const a =
-    document.createElement("a");
-
-    a.href = url;
-    a.download = fileName;
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-    window.URL.revokeObjectURL(url);
+  const { data, error } = await supabaseClient.storage.from("files").download(`${folder}/${fileName}`);
+  if (error) { popup(error.message, "error"); return; }
+  const url = window.URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url; a.download = fileName.replace(/^\d+_/, "");
+  document.body.appendChild(a); a.click(); a.remove();
+  window.URL.revokeObjectURL(url);
 }
 
-async function previewFile(
-folder,
-fileName
-){
-
-const path =
-`${folder}/${fileName}`;
-
-const {
-data,
-error
-
-} =
-await supabaseClient
-.storage
-.from("files")
-.createSignedUrl(
-path,
-300
-);
-
-if(error){
-
-popup(error.message);
-
-return;
-
+/* ===== PREVIEW ===== */
+async function previewFile(folder, fileName) {
+  const { data, error } = await supabaseClient.storage.from("files").createSignedUrl(`${folder}/${fileName}`, 300);
+  if (error) { popup(error.message, "error"); return; }
+  window.open(data.signedUrl, "_blank");
 }
 
-window.open(
-data.signedUrl,
-"_blank"
-);
+/* ===== LOAD FILES ===== */
+async function loadFiles() {
+  const user = (await supabaseClient.auth.getUser()).data.user;
+  const { data, error } = await supabaseClient.storage.from("files").list(user.id);
+  const list = document.getElementById("fileList");
 
-}
-async function loadFiles(){
+  if (error) { list.innerHTML = `<div class="empty-state"><p>Could not load files.</p></div>`; return; }
 
-const user =
-(
-await supabaseClient
-.auth
-.getUser()
-).data.user;
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+      </svg>
+      <p>No files yet. Upload something!</p>
+    </div>`;
+    document.getElementById("totalFiles").innerText = "0";
+    document.getElementById("totalSize").innerText = "0 MB";
+    return;
+  }
 
-const {
-data,
-error
-}
-=
-await supabaseClient
-.storage
-.from("files")
-.list(user.id);
+  data.sort((a, b) => b.name.localeCompare(a.name));
 
-const list =
-document.getElementById("fileList");
+  list.innerHTML = "";
+  let totalFiles = 0, totalBytes = 0;
 
-if(error){
+  data.forEach(file => {
+    totalFiles++;
+    if (file.metadata?.size) totalBytes += file.metadata.size;
 
-list.innerHTML =
-"Cannot load files";
+    const cleanName = file.name.replace(/^\d+_/, "");
+    const { icon, cls } = getFileIcon(cleanName);
 
-return;
+    const row = document.createElement("div");
+    row.className = "file-item";
+    row.innerHTML = `
+      <div class="file-name">
+        <div class="file-type-icon ${cls}">${icon}</div>
+        <div class="file-info">
+          <div class="name" title="${cleanName}">${cleanName}</div>
+          <div class="meta">${file.metadata?.size ? formatSize(file.metadata.size) : "—"}</div>
+        </div>
+      </div>
+      <div class="file-actions">
+        <button class="action-btn preview" onclick="previewFile('${user.id}','${file.name}')">
+          ${eyeIcon} <span>Preview</span>
+        </button>
+        <button class="action-btn download" onclick="downloadFile('${user.id}','${file.name}')">
+          ${downloadIcon} <span>Download</span>
+        </button>
+        <button class="action-btn delete" onclick="deleteFile('${user.id}','${file.name}', this)">
+          ${trashIcon} <span>Delete</span>
+        </button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
 
-}
+  document.getElementById("totalFiles").innerText = totalFiles;
+  const mb = (totalBytes / 1024 / 1024).toFixed(2);
+  document.getElementById("totalSize").innerText = mb + " MB";
 
-if(data.length===0){
-
-list.innerHTML =
-`
-<div class="file-card">
-No files uploaded yet
-</div>
-`;
-
-return;
-
-}
-
-data.sort(
-(a,b)=>
-b.name.localeCompare(a.name)
-);
-
-list.innerHTML="";
-
-let totalFiles = 0;
-let totalBytes = 0;
-
-data.forEach(file=>{
-
-totalFiles++;
-
-if(
-file.metadata &&
-file.metadata.size
-){
-totalBytes +=
-file.metadata.size;
+  // Animate storage bar (assumes 5 GB free tier)
+  const pct = Math.min((totalBytes / (5 * 1024 * 1024 * 1024)) * 100, 100);
+  setTimeout(() => { document.getElementById("storageBar").style.width = pct + "%"; }, 100);
 }
 
-const cleanName =
-file.name.replace(
-/^\d+_/,
-""
-);
-
-let icon = "📄";
-
-if(
-/\.(jpg|jpeg|png|gif|webp)$/i
-.test(cleanName)
-)
-icon="🖼️";
-
-else if(
-/\.(pdf)$/i
-.test(cleanName)
-)
-icon="📕";
-
-else if(
-/\.(doc|docx)$/i
-.test(cleanName)
-)
-icon="📝";
-
-else if(
-/\.(zip|rar|7z)$/i
-.test(cleanName)
-)
-icon="🗜️";
-
-else if(
-/\.(mp4|avi|mkv)$/i
-.test(cleanName)
-)
-icon="🎥";
-
-else if(
-/\.(mp3|wav)$/i
-.test(cleanName)
-)
-icon="🎵";
-
-const row =
-document.createElement("div");
-
-row.className =
-"file-card";
-
-const info =
-document.createElement("div");
-
-info.className =
-"file-info";
-
-const name =
-document.createElement("div");
-
-name.innerHTML =
-`
-<div>
-<strong>
-${icon} ${cleanName}
-</strong>
-</div>
-`;
-
-info.appendChild(name);
-
-const actions =
-document.createElement("div");
-
-actions.className =
-"file-actions";
-
-const previewBtn =
-document.createElement("button");
-
-previewBtn.innerHTML =
-"👁 Preview";
-
-previewBtn.onclick = () =>
-previewFile(
-user.id,
-file.name
-);
-
-const downloadBtn =
-document.createElement("button");
-
-downloadBtn.innerHTML =
-"⬇ Download";
-
-downloadBtn.onclick = () =>
-downloadFile(
-user.id,
-file.name
-);
-
-const deleteBtn =
-document.createElement("button");
-
-deleteBtn.innerHTML =
-"🗑 Delete";
-
-deleteBtn.className =
-"delete-btn";
-
-deleteBtn.onclick =
-async()=>{
-
-if(
-!confirm(
-"Delete file?"
-)
-)
-return;
-
-const { error } =
-await supabaseClient
-.storage
-.from("files")
-.remove([
-`${user.id}/${file.name}`
-]);
-
-if(error){
-
-popup(
-error.message
-);
-
-return;
-
+/* ===== DELETE ===== */
+async function deleteFile(folder, fileName, btn) {
+  if (!confirm(`Delete "${fileName.replace(/^\d+_/,"")}"?`)) return;
+  btn.disabled = true;
+  const { error } = await supabaseClient.storage.from("files").remove([`${folder}/${fileName}`]);
+  if (error) { popup(error.message, "error"); btn.disabled = false; return; }
+  popup("File deleted", "success");
+  loadFiles();
 }
 
-popup(
-"File Deleted"
-);
-
-loadFiles();
-
-loadMetadataCount();
-
-};
-
-actions.appendChild(
-previewBtn
-);
-
-actions.appendChild(
-downloadBtn
-);
-
-actions.appendChild(
-deleteBtn
-);
-
-row.appendChild(info);
-
-row.appendChild(actions);
-
-list.appendChild(row);
-
-});
-
-document.getElementById(
-"totalFiles"
-).innerText =
-totalFiles;
-
-document.getElementById(
-"totalSize"
-).innerText =
-(
-totalBytes /
-1024 /
-1024
-).toFixed(2)
-+ " MB";
-
+/* ===== METADATA COUNT ===== */
+async function loadMetadataCount() {
+  try {
+    const user = (await supabaseClient.auth.getUser()).data.user;
+    const res  = await fetch(`https://jagathish-backend.onrender.com/api/metadata/${user.id}`);
+    const data = await res.json();
+    document.getElementById("dbFiles").innerText = data.length;
+  } catch (_) {}
 }
-</script>
-<script>
-lucide.createIcons();
+
+/* ===== HELPERS ===== */
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1024 / 1024).toFixed(2) + " MB";
+}
+
+function getFileIcon(name) {
+  if (/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name)) return { icon: "🖼️", cls: "img" };
+  if (/\.pdf$/i.test(name))                          return { icon: "📕", cls: "pdf" };
+  if (/\.(doc|docx)$/i.test(name))                   return { icon: "📝", cls: "doc" };
+  if (/\.(zip|rar|7z|tar|gz)$/i.test(name))          return { icon: "🗜️", cls: "zip" };
+  if (/\.(mp4|avi|mkv|mov|webm)$/i.test(name))       return { icon: "🎥", cls: "vid" };
+  if (/\.(mp3|wav|ogg|flac)$/i.test(name))           return { icon: "🎵", cls: "aud" };
+  return { icon: "📄", cls: "def" };
+}
+
+const eyeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const downloadIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>`;
+
 </script>
 </body>
 </html>
