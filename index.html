@@ -534,7 +534,6 @@ session.user.email
 checkSession();
 
 async function uploadFile(){
-console.log("UPLOAD STARTED");
 
 const file =
 document.getElementById("fileInput").files[0];
@@ -545,38 +544,10 @@ if(!file){
 }
 
 const user =
-(await supabaseClient.auth.getUser())
-.data.user;
+(await supabaseClient.auth.getUser()).data.user;
 
 const path =
 `${user.id}/${Date.now()}_${file.name}`;
-
-const container =
-document.getElementById("progressContainer");
-
-const bar =
-document.getElementById("progressBar");
-
-container.style.display = "block";
-
-let progress = 0;
-
-const fakeProgress =
-setInterval(()=>{
-
-progress += 5;
-
-if(progress <= 90){
-
-bar.style.width =
-progress + "%";
-
-bar.innerText =
-progress + "%";
-
-}
-
-},200);
 
 const { error } =
 await supabaseClient
@@ -584,51 +555,15 @@ await supabaseClient
 .from("files")
 .upload(path,file);
 
-clearInterval(fakeProgress);
-
 if(error){
-
-container.style.display = "none";
-
-popup(error.message);
-
-return;
+    popup(error.message);
+    return;
 }
-
-bar.style.width = "100%";
-bar.innerText = "100%";
-
-await fetch(
-"https://jagathish-backend.onrender.com/api/save-file",
-{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-user_id:user.id,
-filename:file.name,
-size:file.size,
-storage_path:path
-})
-}
-);
-
-setTimeout(()=>{
-
-container.style.display = "none";
-
-bar.style.width = "0%";
-
-bar.innerText = "0%";
-
-},1000);
 
 popup("Upload Success");
 
 loadFiles();
 loadMetadataCount();
-
 }
 
 async function downloadFile(folder, fileName) {
