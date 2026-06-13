@@ -685,9 +685,12 @@ if(file.metadata && file.metadata.size){
     row.style.borderRadius="10px";
 
     const name =
-    document.createElement("span");
+document.createElement("span");
 
-    name.innerHTML="📄 " + file.name;
+const cleanName =
+file.name.replace(/^\d+_/, "");
+
+name.innerHTML = "📄 " + cleanName;
 
     const actions =
     document.createElement("div");

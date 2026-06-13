@@ -44,10 +44,16 @@ data.forEach(file => {
     row.style.background = "#16253d";
     row.style.borderRadius = "8px";
 
-    const name = document.createElement("span");
-    name.textContent = "📄 " + file.name;
+    const name =
+document.createElement("span");
 
-    const actions = document.createElement("div");
+const cleanName =
+file.name.replace(/^\d+_/, "");
+
+name.innerHTML = "📄 " + cleanName;
+
+const actions =
+document.createElement("div");
 
     const downloadBtn = document.createElement("button");
     downloadBtn.textContent = "Download";
