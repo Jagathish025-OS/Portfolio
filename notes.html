@@ -527,6 +527,9 @@ const SUPABASE_ANON_KEY = "sb_publishable_cdCtff0oXM7b-Bv4iEJ7Kg_tMEnhr38";
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* Map to store note content safely - avoids inline JS escaping issues */
+const noteMap = new Map();
+
 /* === CHAR COUNT === */
 const noteInput  = document.getElementById("noteInput");
 const charCount  = document.getElementById("charCount");
@@ -585,11 +588,12 @@ function renderNotes(notes) {
       .replace(/</g,"&lt;")
       .replace(/>/g,"&gt;");
 
+    noteMap.set(note.id, note.content);
     card.innerHTML = `
       <div class="note-meta">
         <span class="note-time" data-ts="${note.created_at}">${timeAgo(note.created_at)}</span>
         <div class="note-actions">
-          <button class="copy-btn" onclick="copyNote(this, ${JSON.stringify(note.content)})">
+          <button class="copy-btn" data-id="${note.id}" onclick="copyNote(this)">
             <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             Copy
           </button>
@@ -608,7 +612,8 @@ function renderNotes(notes) {
 }
 
 /* === COPY === */
-async function copyNote(btn, content) {
+async function copyNote(btn) {
+  const content = noteMap.get(btn.dataset.id) || "";
   const defaultHTML = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
   const copiedHTML  = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
   const markDone = () => {
@@ -712,11 +717,12 @@ db.channel("notes-live")
       .replace(/</g,"&lt;")
       .replace(/>/g,"&gt;");
 
+    noteMap.set(note.id, note.content);
     card.innerHTML = `
       <div class="note-meta">
         <span class="note-time" data-ts="${note.created_at}">just now</span>
         <div class="note-actions">
-          <button class="copy-btn" onclick="copyNote(this, ${JSON.stringify(note.content)})">
+          <button class="copy-btn" data-id="${note.id}" onclick="copyNote(this)">
             <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             Copy
           </button>
