@@ -693,7 +693,28 @@ document.createElement("span");
 const cleanName =
 file.name.replace(/^\d+_/, "");
 
-name.innerHTML = "📄 " + cleanName;
+let icon = "📄";
+
+if(/\.(jpg|jpeg|png|gif|webp)$/i.test(cleanName))
+    icon = "🖼️";
+
+else if(/\.(pdf)$/i.test(cleanName))
+    icon = "📕";
+
+else if(/\.(doc|docx)$/i.test(cleanName))
+    icon = "📝";
+
+else if(/\.(zip|rar|7z)$/i.test(cleanName))
+    icon = "🗜️";
+
+else if(/\.(mp4|avi|mkv)$/i.test(cleanName))
+    icon = "🎥";
+
+else if(/\.(mp3|wav)$/i.test(cleanName))
+    icon = "🎵";
+
+name.innerHTML =
+icon + " " + cleanName;
 
     const actions =
     document.createElement("div");
