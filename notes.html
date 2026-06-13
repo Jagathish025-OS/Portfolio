@@ -590,57 +590,66 @@ function renderNotes(notes) {
 
 /* === COPY === */
 async function copyNote(btn, content) {
-
-  try {
-
-    await navigator.clipboard.writeText(content);
-
-  } catch (err) {
-
-    const textarea =
-      document.createElement("textarea");
-
-    textarea.value = content;
-
-    document.body.appendChild(textarea);
-
-    textarea.select();
-
-    document.execCommand("copy");
-
-    document.body.removeChild(textarea);
-  }
-
-  btn.innerHTML = "✓ Copied";
-
-  setTimeout(() => {
-
-    btn.innerHTML = `
-      <svg viewBox="0 0 24 24">
-        <rect x="9" y="9" width="13" height="13" rx="2"/>
-        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-      </svg>
-      Copy
-    `;
-
-  }, 2000);
-} catch {
-    // Fallback for Citrix/VDI that blocks clipboard API
-    const ta = document.createElement("textarea");
-    ta.value = content;
-    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
-    document.body.appendChild(ta);
-    ta.focus(); ta.select();
-    try { document.execCommand("copy"); showToast("✓ Copied to clipboard"); }
-    catch { showToast("⌨ Select text above, then Ctrl+C"); }
-    ta.remove();
-    btn.classList.add("copied");
-    btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+  const resetBtn = () => {
     setTimeout(() => {
       btn.classList.remove("copied");
       btn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
     }, 2500);
+  };
+
+  const markCopied = () => {
+    btn.classList.add("copied");
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    showToast("✓ Copied to clipboard");
+    resetBtn();
+  };
+
+  // 1. Modern Clipboard API (works on HTTPS + desktop browsers)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(content);
+      markCopied();
+      return;
+    } catch (_) { /* fall through */ }
   }
+
+  // 2. Mobile-safe: create a temporary input, select it, execCommand
+  //    Must be a visible element for iOS Safari to allow selection
+  const el = document.createElement("textarea");
+  el.value = content;
+  el.setAttribute("readonly", "");
+  el.style.cssText = [
+    "position:fixed",
+    "top:0","left:0",
+    "width:1px","height:1px",
+    "padding:0","border:none",
+    "outline:none","box-shadow:none",
+    "background:transparent",
+    "opacity:0.01",   /* NOT 0 — iOS won't select invisible elements */
+    "font-size:16px"  /* prevent iOS zoom on focus */
+  ].join(";");
+  document.body.appendChild(el);
+
+  // iOS needs a range-based selection
+  if (navigator.userAgent.match(/ipad|iphone/i)) {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    el.setSelectionRange(0, el.value.length);
+  } else {
+    el.focus();
+    el.select();
+  }
+
+  try {
+    const ok = document.execCommand("copy");
+    if (ok) { markCopied(); } else { showToast("⌨ Long-press the text to copy"); }
+  } catch (_) {
+    showToast("⌨ Long-press the text to copy");
+  }
+  document.body.removeChild(el);
 }
 
 /* === CREATE NOTE === */
