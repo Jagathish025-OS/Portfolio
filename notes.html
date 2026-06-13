@@ -434,74 +434,14 @@
     }
 
     /* === COPY MODAL === */
-    .cm-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(4px);
-      z-index: 2000;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 12px;
-    }
-    .cm-overlay.open { display: flex; }
-    .cm-box {
-      background: #0d1526;
-      border: 1px solid rgba(34,211,238,0.3);
-      border-radius: 20px;
-      padding: 20px;
-      width: 100%;
-      max-width: 640px;
-      animation: slideUp 0.22s cubic-bezier(0.34,1.2,0.64,1) both;
-    }
-    @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:none;opacity:1} }
-    .cm-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-    .cm-text {
-      font-family: var(--mono);
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: var(--text);
-      background: var(--input-bg);
-      border: 1px solid var(--border-h);
-      border-radius: 10px;
-      padding: 13px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 200px;
-      overflow-y: auto;
-      user-select: text;
-      -webkit-user-select: text;
-      cursor: text;
-    }
-    .cm-hint {
-      font-size: 0.75rem;
-      color: var(--accent);
-      font-weight: 500;
-      text-align: center;
-      margin-top: 10px;
-    }
-    .cm-close {
-      display: block;
-      width: 100%;
-      margin-top: 12px;
-      padding: 11px;
-      background: var(--elevated);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .cm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:2000;align-items:flex-end;justify-content:center;padding:12px}
+    .cm-overlay.open{display:flex}
+    .cm-box{background:#0d1526;border:1px solid rgba(34,211,238,.35);border-radius:20px;padding:20px;width:100%;max-width:640px;animation:cmUp .22s cubic-bezier(.34,1.2,.64,1) both}
+    @keyframes cmUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+    .cm-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:10px}
+    .cm-text{font-family:var(--mono);font-size:.9rem;line-height:1.7;color:var(--text);background:var(--input-bg);border:1px solid var(--border-h);border-radius:10px;padding:13px;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto;user-select:text;-webkit-user-select:text;cursor:text}
+    .cm-hint{font-size:.75rem;color:var(--accent);font-weight:500;text-align:center;margin-top:10px}
+    .cm-close{display:block;width:100%;margin-top:12px;padding:11px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer}
   </style>
 </head>
 <body>
@@ -547,13 +487,12 @@
 <footer>Notes are public · no login required · deleted after 24 hours</footer>
 
 <div class="toast" id="toast"></div>
-
-<!-- Copy modal for mobile/VDI fallback -->
-<div class="cm-overlay" id="cmOverlay">
+<!-- Copy modal fallback -->
+<div class="cm-overlay" id="cmOverlay" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="cm-box">
     <div class="cm-label">Copy this text</div>
     <div class="cm-text" id="cmText"></div>
-    <div class="cm-hint">👆 Long-press → Select all → Copy</div>
+    <div class="cm-hint">👆 Long-press the text → Select all → Copy</div>
     <button class="cm-close" onclick="document.getElementById('cmOverlay').classList.remove('open')">Close</button>
   </div>
 </div>
@@ -670,33 +609,28 @@ function renderNotes(notes) {
 
 /* === COPY === */
 async function copyNote(btn, content) {
-  const setBtn = (html, cls) => {
-    btn.innerHTML = html;
-    btn.className = "copy-btn" + (cls ? " " + cls : "");
-  };
-  const copiedSVG  = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-  const defaultSVG = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+  const defaultHTML = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
+  const copiedHTML  = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
   const markDone = () => {
-    setBtn(copiedSVG + " Copied!", "copied");
+    btn.classList.add("copied");
+    btn.innerHTML = copiedHTML;
     showToast("✓ Copied to clipboard");
-    setTimeout(() => setBtn(defaultSVG + " Copy"), 2500);
+    setTimeout(() => { btn.classList.remove("copied"); btn.innerHTML = defaultHTML; }, 2500);
   };
 
-  /* ── Layer 1: Clipboard API (HTTPS required, works on Android/desktop Chrome) ── */
+  // Layer 1: Modern clipboard API
   if (navigator.clipboard && window.isSecureContext) {
-    try { await navigator.clipboard.writeText(content); markDone(); return; } catch (_) {}
+    try { await navigator.clipboard.writeText(content); markDone(); return; } catch(_) {}
   }
 
-  /* ── Layer 2: execCommand (older browsers, some Android) ── */
+  // Layer 2: execCommand with visible textarea (opacity:0 blocks iOS/Android)
   try {
     const ta = document.createElement("textarea");
     ta.value = content;
     ta.setAttribute("readonly", "");
-    // Must be visible (opacity > 0) and 16px to prevent iOS auto-zoom
     ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;opacity:0.01;font-size:16px;";
     document.body.appendChild(ta);
     ta.focus();
-    // iOS range selection
     if (/ipad|iphone/i.test(navigator.userAgent)) {
       const r = document.createRange();
       r.selectNodeContents(ta);
@@ -708,14 +642,13 @@ async function copyNote(btn, content) {
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     if (ok) { markDone(); return; }
-  } catch (_) {}
+  } catch(_) {}
 
-  /* ── Layer 3: Show modal with pre-selected text ── */
+  // Layer 3: Show modal with pre-selected text
   const overlay = document.getElementById("cmOverlay");
   const textEl  = document.getElementById("cmText");
   textEl.textContent = content;
   overlay.classList.add("open");
-  // Try to auto-select so user just taps the native Copy popup
   requestAnimationFrame(() => {
     try {
       const r = document.createRange();
@@ -723,10 +656,9 @@ async function copyNote(btn, content) {
       const s = window.getSelection();
       s.removeAllRanges();
       s.addRange(r);
-    } catch (_) {}
+    } catch(_) {}
   });
 }
-
 
 /* === CREATE NOTE === */
 async function createNote() {
