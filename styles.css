@@ -77,6 +77,39 @@ body::before {
 
 body > * { position: relative; z-index: 1; }
 
+.orb{
+position:fixed;
+border-radius:50%;
+filter:blur(120px);
+opacity:.25;
+pointer-events:none;
+}
+
+.orb1{
+width:400px;
+height:400px;
+background:#3b82f6;
+top:-100px;
+left:-100px;
+}
+
+.orb2{
+width:350px;
+height:350px;
+background:#7c3aed;
+bottom:-100px;
+right:-100px;
+}
+.file-item{
+backdrop-filter:blur(18px);
+}
+
+.file-item:hover{
+box-shadow:
+0 0 20px rgba(59,130,246,.2),
+0 0 40px rgba(59,130,246,.1);
+}
+
 /* === TYPOGRAPHY === */
 h1 {
   font-size: 1.75rem;
