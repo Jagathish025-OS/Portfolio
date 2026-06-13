@@ -48,7 +48,7 @@ data.forEach(file => {
 document.createElement("span");
 
 const cleanName =
-file.name.replace(/^\d+_/, "");
+file.name.replace(/^[0-9]+_/, "");
 
 name.innerHTML = "📄 " + cleanName;
 
