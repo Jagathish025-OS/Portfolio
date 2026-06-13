@@ -780,3 +780,430 @@ input:focus {
 @media (max-width: 400px) {
   .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================
+   ANIMATIONS & MOTION UPGRADE
+   ============================================ */
+
+/* === KEYFRAMES LIBRARY === */
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.2), 0 0 0 1px var(--border); }
+  50%       { box-shadow: 0 0 40px rgba(59,130,246,0.45), 0 0 0 1px rgba(59,130,246,0.4); }
+}
+
+@keyframes borderSpin {
+  from { --angle: 0deg; }
+  to   { --angle: 360deg; }
+}
+
+@keyframes orbDrift {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  33%  { transform: translate(30px, -20px) scale(1.05); }
+  66%  { transform: translate(-20px, 15px) scale(0.97); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scanLine {
+  0%   { top: 0%; opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+@keyframes typewriterBlink {
+  0%, 100% { border-right-color: var(--accent); }
+  50%       { border-right-color: transparent; }
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  40%       { transform: translateY(-6px); }
+  60%       { transform: translateY(-3px); }
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ===========================
+   LOGIN CARD
+   =========================== */
+
+/* Floating card */
+#authPage {
+  animation: fadeUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both, floatY 6s ease-in-out 0.5s infinite;
+}
+
+/* Animated gradient border on focus-within */
+#authPage:focus-within {
+  animation: fadeUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both, glowPulse 2.5s ease-in-out infinite;
+}
+
+/* Brand icon spin-in */
+.brand-icon {
+  animation: fadeUp 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+}
+
+.brand-icon:hover {
+  transform: rotate(15deg) scale(1.15);
+  box-shadow: 0 0 30px rgba(59,130,246,0.7), 0 0 60px rgba(99,102,241,0.3);
+}
+
+/* Shimmer on brand title */
+.brand-logo h1 {
+  background: linear-gradient(90deg, #f1f5f9 20%, var(--accent-light) 40%, #a78bfa 60%, #f1f5f9 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Tab slide indicator */
+.tabs {
+  position: relative;
+  overflow: hidden;
+}
+
+.tabs button {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ripple on tab click */
+.tabs button::after {
+  content: '';
+  position: absolute;
+  inset: 50% 50%;
+  background: rgba(255,255,255,0.25);
+  border-radius: 50%;
+  transition: none;
+  pointer-events: none;
+}
+
+.tabs button:active::after {
+  inset: -50%;
+  transition: inset 0.5s ease, opacity 0.5s ease;
+  opacity: 0;
+}
+
+/* Input slide-in stagger */
+.input-group:nth-child(4) { animation: fadeUp 0.45s ease 0.2s both; }
+.input-group:nth-child(5) { animation: fadeUp 0.45s ease 0.3s both; }
+#authBtn                   { animation: fadeUp 0.45s ease 0.4s both; }
+
+/* Input icon wiggle on focus */
+.input-group:focus-within .input-icon {
+  stroke: var(--accent);
+  animation: iconBounce 0.5s ease;
+}
+
+/* Main button shine sweep */
+.main-btn {
+  position: relative;
+  overflow: hidden;
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+}
+
+.main-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -75%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+
+.main-btn:hover::before { left: 130%; }
+
+/* ===========================
+   ORBS — drift animation
+   =========================== */
+
+.orb1 { animation: orbDrift 12s ease-in-out infinite; }
+.orb2 { animation: orbDrift 15s ease-in-out 3s infinite reverse; }
+
+/* ===========================
+   TOPBAR
+   =========================== */
+
+.topbar {
+  animation: fadeUp 0.4s ease both;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.topbar:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 8px 40px rgba(59,130,246,0.12);
+}
+
+/* Icon pulse */
+.topbar-icon {
+  animation: glowPulse 3s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.topbar-icon:hover { transform: scale(1.12) rotate(-8deg); }
+
+/* Email typewriter effect via JS class */
+#welcomeEmail.typing {
+  border-right: 2px solid var(--accent);
+  animation: typewriterBlink 0.8s step-end infinite;
+  padding-right: 2px;
+}
+
+/* Logout button slide */
+.logout-btn {
+  transition: var(--transition), transform 0.2s ease;
+}
+
+.logout-btn:hover {
+  transform: translateX(3px);
+}
+
+.logout-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.logout-btn:hover svg { transform: translateX(3px); }
+
+/* ===========================
+   STATS CARDS
+   =========================== */
+
+.stats-grid { perspective: 800px; }
+
+.stat-card {
+  animation: fadeUp 0.5s cubic-bezier(0.34,1.2,0.64,1) both;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), border-color 0.3s ease, box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+}
+
+.stats-grid .stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stats-grid .stat-card:nth-child(2) { animation-delay: 0.12s; }
+.stats-grid .stat-card:nth-child(3) { animation-delay: 0.19s; }
+
+.stat-card:hover {
+  transform: translateY(-5px) rotateX(4deg);
+  border-color: var(--border-hover);
+  box-shadow: 0 12px 40px rgba(59,130,246,0.2);
+}
+
+/* Stat value count-up animation */
+.stat-value {
+  animation: countUp 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+}
+
+/* Storage bar shimmer when filled */
+.storage-bar-fill {
+  background: linear-gradient(90deg, var(--accent), #6366f1, var(--accent-light), var(--accent));
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* Sync dot grow-pulse */
+.sync-dot {
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(16,185,129,0.4);
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; box-shadow: 0 0 0 0   rgba(16,185,129,0.5); }
+  50%  { opacity: 0.6; }
+  70%  { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+  100% { opacity: 1; box-shadow: 0 0 0 0   rgba(16,185,129,0); }
+}
+
+/* ===========================
+   UPLOAD ZONE
+   =========================== */
+
+.panel {
+  animation: fadeUp 0.5s ease 0.15s both;
+}
+
+/* Upload icon float */
+.drop-zone svg {
+  animation: floatY 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(59,130,246,0.4));
+}
+
+/* Drop zone pulse border on drag */
+.drop-zone {
+  transition: var(--transition), transform 0.2s ease;
+}
+
+.drop-zone:hover {
+  transform: scale(1.01);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim), inset 0 0 30px rgba(59,130,246,0.05);
+}
+
+.drop-zone.dragging {
+  transform: scale(1.02);
+  animation: glowPulse 1s ease-in-out infinite;
+}
+
+/* Scan line effect on drop zone hover */
+.drop-zone::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  top: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+.drop-zone:hover::after {
+  opacity: 1;
+  animation: scanLine 1.8s ease-in-out infinite;
+}
+
+/* Upload button pulse */
+.upload-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -75%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+}
+
+.upload-btn:hover::before { left: 130%; }
+
+.upload-btn svg {
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.upload-btn:hover svg { transform: translateY(-2px); }
+
+/* Progress bar animate */
+.progress-fill {
+  background: linear-gradient(90deg, var(--accent), #a78bfa, var(--accent));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+/* ===========================
+   FILE LIST ROWS
+   =========================== */
+
+/* Staggered row entrance */
+.file-item {
+  animation: rowSlide 0.3s ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Stagger via nth-child — covers up to 20 files */
+.file-item:nth-child(1)  { animation-delay: 0.03s; }
+.file-item:nth-child(2)  { animation-delay: 0.07s; }
+.file-item:nth-child(3)  { animation-delay: 0.11s; }
+.file-item:nth-child(4)  { animation-delay: 0.15s; }
+.file-item:nth-child(5)  { animation-delay: 0.19s; }
+.file-item:nth-child(6)  { animation-delay: 0.22s; }
+.file-item:nth-child(7)  { animation-delay: 0.25s; }
+.file-item:nth-child(8)  { animation-delay: 0.28s; }
+.file-item:nth-child(9)  { animation-delay: 0.31s; }
+.file-item:nth-child(10) { animation-delay: 0.34s; }
+.file-item:nth-child(n+11) { animation-delay: 0.37s; }
+
+/* Hover shimmer sweep across row */
+.file-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.04) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+  pointer-events: none;
+}
+
+.file-item:hover::before { transform: translateX(100%); }
+
+/* File icon pop on row hover */
+.file-item:hover .file-type-icon {
+  transform: scale(1.15) rotate(-5deg);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* Action buttons stagger reveal */
+.file-item .file-actions {
+  opacity: 0.65;
+  transition: opacity 0.2s ease;
+}
+
+.file-item:hover .file-actions { opacity: 1; }
+
+.action-btn {
+  transition: var(--transition), transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.action-btn:hover { transform: translateY(-2px); }
+.action-btn:active { transform: translateY(0) scale(0.95); }
+
+/* Delete btn shake on hover */
+.action-btn.delete:hover {
+  animation: none;
+}
+
+@keyframes deleteShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-3px) rotate(-2deg); }
+  40%       { transform: translateX(3px) rotate(2deg); }
+  60%       { transform: translateX(-2px); }
+  80%       { transform: translateX(2px); }
+}
+
+.action-btn.delete:hover {
+  animation: deleteShake 0.4s ease;
+}
+
+/* ===========================
+   REDUCED MOTION RESPECT
+   =========================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

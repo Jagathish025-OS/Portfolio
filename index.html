@@ -279,7 +279,15 @@ authBtn.onclick = async () => {
 async function showDashboard(email) {
   authPage.classList.add("hidden");
   dashboardPage.classList.remove("hidden");
-  document.getElementById("welcomeEmail").innerText = email;
+  // Typewriter effect for welcome email
+  const el = document.getElementById("welcomeEmail");
+  el.textContent = "";
+  el.classList.add("typing");
+  let i = 0;
+  const tick = setInterval(() => {
+    el.textContent = email.slice(0, ++i);
+    if (i >= email.length) { clearInterval(tick); setTimeout(() => el.classList.remove("typing"), 800); }
+  }, 38);
   loadFiles();
   loadMetadataCount();
 }
