@@ -411,83 +411,6 @@
       to   { opacity:1; transform:translateY(0); }
     }
 
-    /* === COPY MODAL (mobile fallback) === */
-    .copy-modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(6px);
-      z-index: 1000;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 16px;
-    }
-    .copy-modal-overlay.open { display: flex; }
-
-    .copy-modal {
-      background: #0f1423;
-      border: 1px solid var(--border-h);
-      border-radius: 20px;
-      padding: 20px;
-      width: 100%;
-      max-width: 600px;
-      box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
-      animation: slideUp 0.25s cubic-bezier(0.34,1.2,0.64,1) both;
-    }
-
-    @keyframes slideUp { from { transform: translateY(40px); opacity:0; } to { transform:none; opacity:1; } }
-
-    .copy-modal-title {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
-    }
-
-    .copy-modal-text {
-      font-family: var(--mono);
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: var(--text);
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 220px;
-      overflow-y: auto;
-      user-select: text;
-      -webkit-user-select: text;
-      cursor: text;
-    }
-
-    .copy-modal-hint {
-      font-size: 0.75rem;
-      color: var(--accent);
-      margin-top: 10px;
-      text-align: center;
-      font-weight: 500;
-    }
-
-    .copy-modal-close {
-      display: block;
-      width: 100%;
-      margin-top: 14px;
-      padding: 11px;
-      background: var(--elevated);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
     /* === FOOTER === */
     footer {
       margin-top: 48px;
@@ -508,6 +431,76 @@
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+    }
+
+    /* === COPY MODAL === */
+    .cm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 12px;
+    }
+    .cm-overlay.open { display: flex; }
+    .cm-box {
+      background: #0d1526;
+      border: 1px solid rgba(34,211,238,0.3);
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 640px;
+      animation: slideUp 0.22s cubic-bezier(0.34,1.2,0.64,1) both;
+    }
+    @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:none;opacity:1} }
+    .cm-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .cm-text {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--input-bg);
+      border: 1px solid var(--border-h);
+      border-radius: 10px;
+      padding: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+      user-select: text;
+      -webkit-user-select: text;
+      cursor: text;
+    }
+    .cm-hint {
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 500;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .cm-close {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 11px;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -555,13 +548,13 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Mobile copy fallback modal -->
-<div class="copy-modal-overlay" id="copyModal" onclick="closeCopyModal(event)">
-  <div class="copy-modal">
-    <div class="copy-modal-title">Tap &amp; hold to copy</div>
-    <div class="copy-modal-text" id="copyModalText"></div>
-    <div class="copy-modal-hint">👆 Long-press the text above → Select all → Copy</div>
-    <button class="copy-modal-close" onclick="document.getElementById('copyModal').classList.remove('open')">Done</button>
+<!-- Copy modal for mobile/VDI fallback -->
+<div class="cm-overlay" id="cmOverlay">
+  <div class="cm-box">
+    <div class="cm-label">Copy this text</div>
+    <div class="cm-text" id="cmText"></div>
+    <div class="cm-hint">👆 Long-press → Select all → Copy</div>
+    <button class="cm-close" onclick="document.getElementById('cmOverlay').classList.remove('open')">Close</button>
   </div>
 </div>
 
@@ -676,64 +669,64 @@ function renderNotes(notes) {
 }
 
 /* === COPY === */
-function closeCopyModal(e) {
-  if (e.target === document.getElementById('copyModal')) {
-    document.getElementById('copyModal').classList.remove('open');
-  }
-}
-
-function showCopyModal(content) {
-  const modal = document.getElementById('copyModal');
-  const textEl = document.getElementById('copyModalText');
-  textEl.textContent = content;
-  modal.classList.add('open');
-  // Auto-select all text inside so user just needs to tap Copy
-  setTimeout(() => {
-    const range = document.createRange();
-    range.selectNodeContents(textEl);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }, 100);
-}
-
 async function copyNote(btn, content) {
-  const markCopied = () => {
-    btn.classList.add("copied");
-    btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+  const setBtn = (html, cls) => {
+    btn.innerHTML = html;
+    btn.className = "copy-btn" + (cls ? " " + cls : "");
+  };
+  const copiedSVG  = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const defaultSVG = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+  const markDone = () => {
+    setBtn(copiedSVG + " Copied!", "copied");
     showToast("✓ Copied to clipboard");
-    setTimeout(() => {
-      btn.classList.remove("copied");
-      btn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
-    }, 2500);
+    setTimeout(() => setBtn(defaultSVG + " Copy"), 2500);
   };
 
-  // Try modern clipboard API first (works on Android Chrome over HTTPS in a user gesture)
+  /* ── Layer 1: Clipboard API (HTTPS required, works on Android/desktop Chrome) ── */
   if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(content);
-      markCopied();
-      return;
-    } catch (_) { /* blocked — fall through */ }
+    try { await navigator.clipboard.writeText(content); markDone(); return; } catch (_) {}
   }
 
-  // execCommand fallback (older Android / some browsers)
+  /* ── Layer 2: execCommand (older browsers, some Android) ── */
   try {
     const ta = document.createElement("textarea");
     ta.value = content;
     ta.setAttribute("readonly", "");
-    ta.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:2px;opacity:0.01;font-size:16px;border:none;outline:none;";
+    // Must be visible (opacity > 0) and 16px to prevent iOS auto-zoom
+    ta.style.cssText = "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:none;outline:none;opacity:0.01;font-size:16px;";
     document.body.appendChild(ta);
     ta.focus();
-    ta.setSelectionRange(0, ta.value.length);
+    // iOS range selection
+    if (/ipad|iphone/i.test(navigator.userAgent)) {
+      const r = document.createRange();
+      r.selectNodeContents(ta);
+      const s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    }
+    ta.setSelectionRange(0, 9999);
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
-    if (ok) { markCopied(); return; }
-  } catch (_) { /* fall through */ }
+    if (ok) { markDone(); return; }
+  } catch (_) {}
 
-  // Last resort: show modal with pre-selected text the user can copy manually
-  showCopyModal(content);
+  /* ── Layer 3: Show modal with pre-selected text ── */
+  const overlay = document.getElementById("cmOverlay");
+  const textEl  = document.getElementById("cmText");
+  textEl.textContent = content;
+  overlay.classList.add("open");
+  // Try to auto-select so user just taps the native Copy popup
+  requestAnimationFrame(() => {
+    try {
+      const r = document.createRange();
+      r.selectNodeContents(textEl);
+      const s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (_) {}
+  });
 }
+
 
 /* === CREATE NOTE === */
 async function createNote() {
