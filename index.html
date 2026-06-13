@@ -659,7 +659,10 @@ if(error){
     list.innerHTML="Cannot load files";
     return;
 }
-
+data.sort(
+(a,b)=>
+b.name.localeCompare(a.name)
+);
 if(data.length===0){
     list.innerHTML="No files";
     return;
