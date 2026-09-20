@@ -330,3 +330,81 @@ $('retry').addEventListener('click', async () => {
     setStatus(`Unable to load Town Hall data: ${error.message}`, 'error');
   }
 })();
+
+// ---------------- BASE GENERATOR V9 ----------------
+let currentBaseResult = null;
+
+function renderGeneratedBase(payload) {
+  currentBaseResult = payload;
+  const base = payload.base || {};
+  const source = payload.generationMode === 'ai-base-type'
+    ? 'AI base purpose selected · server link verified'
+    : 'AI unavailable · verified server base purpose used';
+
+  setText('baseName', base.name || `TH${payload.townHall} ${base.type || 'Base'}`);
+  setText('baseSummary', payload.summary || '');
+
+  setHtml('baseProfile', `
+    <div class="unit-row"><span>Town Hall</span><span class="qty">TH${escapeHtml(payload.townHall)}</span></div>
+    <div class="unit-row"><span>Purpose</span><span class="qty">${escapeHtml(base.type || 'Community')}</span></div>
+    <div class="unit-row"><span>Builder / source credit</span><span class="qty">${escapeHtml(base.builder || 'Community catalog')}</span></div>
+    <div class="unit-row"><span>Added</span><span class="qty">${escapeHtml(base.added || '—')}</span></div>
+    <div class="unit-row"><span>Tags</span><span class="qty">${escapeHtml((base.tags || []).join(', ') || '—')}</span></div>
+    <p class="hint">${escapeHtml(base.description || 'No description supplied by the community catalog.')}</p>
+  `);
+
+  const image = base.image
+    ? `<img src="${escapeHtml(base.image)}" alt="${escapeHtml(base.name || `TH${payload.townHall} base preview`)}" loading="lazy" referrerpolicy="no-referrer">`
+    : '<div class="empty">No preview image supplied by the catalog.</div>';
+  $('basePreview').innerHTML = image;
+
+  $('baseValidationNote').textContent = `Verified — ${source}. The returned OpenLayout link was structurally validated for TH${payload.townHall}.`;
+  const button = $('openBaseCoC');
+  button.disabled = !base.link;
+  button.title = base.link ? 'Open this verified base in Clash of Clans' : 'No shareable base link available';
+
+  $('baseResult').hidden = false;
+  $('baseResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function generateBase() {
+  const level = Number($('townHall').value);
+  const button = $('generateBase');
+  button.disabled = true;
+  button.textContent = 'AI selecting base…';
+  $('baseResult').hidden = true;
+  setStatus(`Building verified TH${level} base context and asking the AI…`);
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/coc/generate-base`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ townHall: level })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Base generation failed.');
+
+    renderGeneratedBase(data);
+    if (data.generationMode === 'ai-base-type') {
+      setStatus(`AI selected ${data.base?.type || 'a base purpose'} · layout link verified by server.`, 'success');
+    } else {
+      setStatus(`AI provider unavailable · ${data.base?.type || 'verified server base purpose'} used instead. Layout link verified by server.`, 'success');
+    }
+  } catch (error) {
+    setStatus(error.message || 'Base generation failed.', 'error');
+  } finally {
+    button.disabled = false;
+    button.textContent = '🤖 AI Generate Base';
+  }
+}
+
+$('generateBase').addEventListener('click', generateBase);
+
+$('openBaseCoC').addEventListener('click', () => {
+  const link = currentBaseResult?.base?.link;
+  if (!link) {
+    setStatus('No Clash of Clans base link is available for this result.', 'error');
+    return;
+  }
+  window.open(link, '_blank', 'noopener,noreferrer');
+});
