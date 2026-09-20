@@ -1,1 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Jagathish COC — AI Army & Base</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">⚔</div>
+      <div>
+        <div class="brand-title">JAGATHISH COC</div>
+        <div class="brand-sub">AI Army & Base Lab</div>
+      </div>
+    </div>
+    <a class="back" href="../">← Jagathish Cloud</a>
+  </header>
 
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">CLASH OF CLANS TOOLS</div>
+      <h1>AI Army Generator</h1>
+      <p>Select only your Town Hall. The next version will use the verified game-data layer to generate a legal army automatically.</p>
+
+      <div class="generator-card">
+        <label for="townHall">Town Hall</label>
+        <div class="control-row">
+          <select id="townHall"></select>
+          <button id="generate" class="primary">🤖 Generate Army</button>
+        </div>
+        <div id="status" class="status">Loading Town Hall data…</div>
+      </div>
+    </section>
+
+    <section id="details" class="details">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">GAME DATA</div>
+          <h2 id="thTitle">Town Hall</h2>
+        </div>
+        <span class="source-badge">Local validated source</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span>Troop Capacity</span><strong id="troopCapacity">—</strong></div>
+        <div class="stat"><span>Spell Capacity</span><strong id="spellCapacity">—</strong></div>
+        <div class="stat"><span>Siege Capacity</span><strong id="siegeCapacity">—</strong></div>
+        <div class="stat"><span>CC Troops</span><strong id="ccTroopCapacity">—</strong></div>
+        <div class="stat"><span>CC Spells</span><strong id="ccSpellCapacity">—</strong></div>
+        <div class="stat"><span>CC Siege</span><strong id="ccSiegeCapacity">—</strong></div>
+      </div>
+
+      <div class="heroes-card">
+        <div class="card-title">Hero maximum levels at this Town Hall</div>
+        <div id="heroes" class="hero-list"></div>
+      </div>
+    </section>
+
+    <section class="roadmap">
+      <div class="eyebrow">BUILD ROADMAP</div>
+      <h2>What comes next</h2>
+      <div class="roadmap-grid">
+        <div class="roadmap-item active"><b>01</b><span>Automatic game-data sync</span></div>
+        <div class="roadmap-item"><b>02</b><span>TH10 / TH11 / TH12 validation</span></div>
+        <div class="roadmap-item"><b>03</b><span>AI army generation</span></div>
+        <div class="roadmap-item"><b>04</b><span>Army Link / Open in CoC</span></div>
+        <div class="roadmap-item"><b>05</b><span>AI base generation</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Jagathish COC · Independent fan tool · Not affiliated with Supercell</footer>
+  <script src="./app.js"></script>
+</body>
+</html>
