@@ -103,13 +103,22 @@
                 <span class="purpose-icon">⚖</span>
                 <span><strong>Hybrid</strong><small>Balanced protection</small></span>
               </button>
+              <button class="purpose-card" type="button" data-purpose="Creative" role="radio" aria-checked="false">
+                <span class="purpose-icon">✨</span>
+                <span><strong>Creative / AI Custom</strong><small>Shape, icon, character or your idea</small></span>
+              </button>
+            </div>
+            <div id="creativeControls" class="creative-controls" hidden>
+              <label class="purpose-label" for="creativePrompt">Creative base idea</label>
+              <textarea id="creativePrompt" rows="3" placeholder="Example: Make a giant dragon-shaped TH10 base with strong central protection."></textarea>
+              <button id="surpriseBase" class="secondary" type="button">🎲 Surprise Me</button>
             </div>
             <button id="generateBase" class="primary">🤖 AI Generate Base</button>
             <p id="basePurposeStatus" class="status">Select a base purpose.</p>
           </div>
 
-          <div id="status" class="status" role="status">COC frontend V10 loading…</div>
-          <div class="build-marker">Frontend build: V10 · 2026-09-20</div>
+          <div id="status" class="status" role="status">COC frontend V11 loading…</div>
+          <div class="build-marker">Frontend build: V11 · 2026-09-20</div>
           <button id="retry" class="retry secondary" type="button">Reload Town Hall data</button>
           <p class="hint">The page uses the Render backend as the authoritative source. If it is unreachable, verified stats remain blank rather than showing stale bundled data.</p>
         </div>
@@ -227,6 +236,13 @@
         <div id="baseValidationNote" class="validation-note">Waiting for server validation.</div>
       </section>
 
+      <section id="creativeBlueprintResult" class="order result" hidden>
+        <div class="order-tag"><span class="order-num">05</span><span class="order-name">AI blueprint</span></div>
+        <div class="result-head"><div><h2 id="blueprintName">Creative Blueprint</h2><p id="blueprintSummary" class="summary"></p></div></div>
+        <div id="blueprintCanvas" class="blueprint-canvas"></div>
+        <div id="blueprintMeta" class="validation-note"></div>
+      </section>
+
       <!-- ORDER 05 — BUILD LOG -->
       <section class="order roadmap">
         <div class="order-tag"><span class="order-num">06</span><span class="order-name">Build log</span></div>
@@ -237,7 +253,8 @@
           <div class="roadmap-item done"><b>03</b><span>Server-side validation</span></div>
           <div class="roadmap-item done"><b>04</b><span>Army Link / Open in CoC</span></div>
           <div class="roadmap-item done"><b>05</b><span>AI base purpose + verified layout links</span></div>
-          <div class="roadmap-item"><b>06</b><span>Multi-layout recommendations</span></div>
+          <div class="roadmap-item done"><b>06</b><span>Creative AI blueprint pipeline</span></div>
+          <div class="roadmap-item"><b>07</b><span>Full TH inventory + export authoring</span></div>
         </div>
       </section>
 

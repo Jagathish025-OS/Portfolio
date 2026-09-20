@@ -395,3 +395,9 @@ footer{
   max-height: 520px;
   object-fit: contain;
 }
+
+.creative-controls{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.creative-controls textarea{width:100%;resize:vertical;box-sizing:border-box;margin:6px 0 8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#111;font:inherit}
+.blueprint-canvas{display:grid;grid-template-columns:repeat(22,1fr);max-width:660px;aspect-ratio:1;margin:auto;border:1px solid var(--line);background:#0b1420;overflow:hidden}
+.blueprint-cell{min-width:0;border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)}
+.blueprint-cell.core{background:#8a4d91}.blueprint-cell.defense{background:#365f87}.blueprint-cell.wall{background:#8b6a43}.blueprint-cell.resource{background:#4b7b55}.blueprint-cell.decor{background:#5d4f82}

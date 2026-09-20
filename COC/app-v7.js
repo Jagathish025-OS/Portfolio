@@ -326,12 +326,14 @@ $('retry').addEventListener('click', async () => {
 let currentBaseResult = null;
 let activeGenerator = 'army';
 let selectedBasePurpose = 'War';
+let creativePrompt = ''; 
 
 const BASE_PURPOSES = [
   { value: 'War', labels: ['War'] },
   { value: 'Farm', labels: ['Farm', 'Farming', 'Loot', 'Loot/Farming'] },
   { value: 'Trophy', labels: ['Trophy'] },
-  { value: 'Hybrid', labels: ['Hybrid'] }
+  { value: 'Hybrid', labels: ['Hybrid'] },
+  { value: 'Creative', labels: ['Creative', 'AI Custom'] }
 ];
 
 function setGeneratorMode(mode) {
@@ -368,6 +370,7 @@ function normalizePurposeFromCatalog(type) {
   if (value === 'war') return 'War';
   if (value === 'trophy') return 'Trophy';
   if (value === 'hybrid') return 'Hybrid';
+  if (value === 'creative' || value === 'ai custom') return 'Creative';
   return null;
 }
 
@@ -399,7 +402,7 @@ async function loadBasePurposeAvailability(level) {
     const available = Object.keys(data.types || {}).map(normalizePurposeFromCatalog).filter(Boolean);
     document.querySelectorAll('.purpose-card').forEach(card => {
       const requested = card.dataset.purpose;
-      const ok = available.includes(requested);
+      const ok = requested === 'Creative' || available.includes(requested);
       card.disabled = !ok;
       card.classList.toggle('base-purpose-unavailable', !ok);
       card.title = ok ? '' : `No ${requested === 'Farm' ? 'Farming / Loot' : requested} layouts are currently catalogued for TH${level}.`;
@@ -434,6 +437,7 @@ function selectBasePurpose(purpose) {
   });
   setText('basePurposeStatus', `Selected purpose: ${purpose === 'Farm' ? 'Farming / Loot' : purpose}.`);
   $('basePurposeStatus').classList.remove('error');
+  if ($('creativeControls')) $('creativeControls').hidden = purpose !== 'Creative';
   updateBaseGenerateAvailability();
 }
 
@@ -472,39 +476,49 @@ function renderGeneratedBase(payload) {
   $('baseResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function renderCreativeBlueprint(payload) {
+  const b = payload.selected || payload.candidates?.[0];
+  if (!b) throw new Error('Creative blueprint response was empty.');
+  setText('blueprintName', `TH${b.townHall} ${b.theme} Blueprint`);
+  setText('blueprintSummary', b.prompt || 'Creative AI blueprint generated.');
+  const canvas = $('blueprintCanvas');
+  canvas.innerHTML = '';
+  const map = new Map((b.placements || []).map(p => [`${p.x},${p.y}`, p]));
+  for (let y=0;y<b.gridSize;y++) for (let x=0;x<b.gridSize;x++) {
+    const cell=document.createElement('div'); cell.className='blueprint-cell';
+    const p=map.get(`${x},${y}`);
+    if(p) cell.classList.add(p.category || 'decor');
+    cell.title=p ? `${p.id} @ ${x},${y}` : `${x},${y}`;
+    canvas.appendChild(cell);
+  }
+  setText('blueprintMeta', `Structural validation: ${b.validation?.ok ? 'PASS' : 'FAIL'} · ${b.placements?.length || 0} placed cells. ${b.note}`);
+  $('creativeBlueprintResult').hidden=false;
+  $('creativeBlueprintResult').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 async function generateBase() {
   const level = Number($('townHall').value);
   const button = $('generateBase');
-  if (level < 4) {
-    setStatus('Base layout generation starts at Town Hall 4.', 'error');
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = 'AI generating base…';
-  $('baseResult').hidden = true;
-  setStatus(`Generating a verified TH${level} ${selectedBasePurpose === 'Farm' ? 'Farming / Loot' : selectedBasePurpose} base…`);
-
+  if (level < 4) { setStatus('Base layout generation starts at Town Hall 4.', 'error'); return; }
+  button.disabled = true; button.textContent = '🤖 Generating…';
+  $('baseResult').hidden = true; $('creativeBlueprintResult').hidden = true;
   try {
-    const response = await fetch(`${BACKEND_URL}/api/coc/generate-base`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ townHall: level, basePurpose: selectedBasePurpose })
-    });
+    if (selectedBasePurpose === 'Creative') {
+      const prompt = String($('creativePrompt')?.value || '').trim() || 'Surprise me with a creative base shape.';
+      const response = await fetch(`${BACKEND_URL}/api/coc/generate-base-blueprint`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({townHall:level,basePurpose:'Creative',prompt})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok) throw new Error(data.error || 'Creative blueprint generation failed.');
+      renderCreativeBlueprint(data);
+      setStatus(`TH${level} creative blueprint generated · structural validation passed.`, 'success');
+      return;
+    }
+    const response = await fetch(`${BACKEND_URL}/api/coc/generate-base`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({townHall:level,basePurpose:selectedBasePurpose})});
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Base generation failed.');
-
     renderGeneratedBase(data);
-    setStatus(
-      `TH${level} ${selectedBasePurpose === 'Farm' ? 'Farming / Loot' : selectedBasePurpose} layout selected · link verified by server.`,
-      'success'
-    );
-  } catch (error) {
-    setStatus(error.message || 'Base generation failed.', 'error');
-  } finally {
-    button.textContent = '🤖 AI Generate Base';
-    updateBaseGenerateAvailability();
-  }
+    setStatus(`TH${level} ${selectedBasePurpose === 'Farm' ? 'Farming / Loot' : selectedBasePurpose} layout selected · link verified by server.`, 'success');
+  } catch (error) { setStatus(error.message || 'Base generation failed.', 'error'); }
+  finally { button.textContent = '🤖 AI Generate Base'; updateBaseGenerateAvailability(); }
 }
 
 $('modeArmy').addEventListener('click', () => setGeneratorMode('army'));
@@ -514,6 +528,12 @@ document.querySelectorAll('.purpose-card').forEach(card => {
   card.addEventListener('click', () => {
     if (!card.disabled) selectBasePurpose(card.dataset.purpose);
   });
+});
+
+$('surpriseBase')?.addEventListener('click', () => {
+  const ideas = ['a giant dragon with strong central protection','a skull-shaped maze with a protected core','a crown-shaped symmetrical base','a futuristic robot with balanced defenses','a spiral galaxy style base with layered compartments'];
+  $('creativePrompt').value = ideas[Math.floor(Math.random()*ideas.length)];
+  selectBasePurpose('Creative');
 });
 
 $('generateBase').addEventListener('click', generateBase);
