@@ -492,6 +492,28 @@ function renderCreativeBlueprint(payload) {
     canvas.appendChild(cell);
   }
   setText('blueprintMeta', `Structural validation: ${b.validation?.ok ? 'PASS' : 'FAIL'} · ${b.placements?.length || 0} placed cells. ${b.note}`);
+  const blueprintLink = b?.export?.openLayoutUrl || payload?.export?.openLayoutUrl || '';
+  const blueprintButton = $('openBlueprintCoC');
+  if (blueprintButton) {
+    blueprintButton.disabled = !blueprintLink;
+    blueprintButton.title = blueprintLink ? 'Open this verified Clash of Clans layout' : 'A verified Clash of Clans OpenLayout export is not available yet';
+    blueprintButton.onclick = blueprintLink ? () => window.open(blueprintLink, '_blank', 'noopener,noreferrer') : null;
+  }
+  setText('blueprintExportNote', blueprintLink
+    ? 'OpenLayout export: verified link available.'
+    : 'Open in CoC is shown here, but remains disabled until this creative blueprint is converted into a verified OpenLayout payload. The current visual blueprint is not an in-game layout link.');
+  const downloadButton = $('downloadBlueprintJson');
+  if (downloadButton) {
+    downloadButton.onclick = () => {
+      const blob = new Blob([JSON.stringify(b, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `th${b.townHall}-${String(b.theme || 'creative').toLowerCase()}-blueprint.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  }
   $('creativeBlueprintResult').hidden=false;
   $('creativeBlueprintResult').scrollIntoView({behavior:'smooth',block:'start'});
 }
