@@ -85,31 +85,38 @@
           </div>
 
           <div id="baseControls" class="generator-mode-panel" hidden>
-            <label class="purpose-label">Base purpose</label>
-            <div class="purpose-grid" role="radiogroup" aria-label="Base purpose">
-              <button class="purpose-card selected" type="button" data-purpose="War" role="radio" aria-checked="true">
-                <span class="purpose-icon">⚔</span>
-                <span><strong>War</strong><small>Defensive war layout</small></span>
-              </button>
-              <button class="purpose-card" type="button" data-purpose="Farm" role="radio" aria-checked="false">
-                <span class="purpose-icon">🌾</span>
-                <span><strong>Farming / Loot</strong><small>Protect resources</small></span>
-              </button>
-              <button class="purpose-card" type="button" data-purpose="Trophy" role="radio" aria-checked="false">
-                <span class="purpose-icon">🏆</span>
-                <span><strong>Trophy</strong><small>Protect trophies</small></span>
-              </button>
-              <button class="purpose-card" type="button" data-purpose="Hybrid" role="radio" aria-checked="false">
-                <span class="purpose-icon">⚖</span>
-                <span><strong>Hybrid</strong><small>Balanced protection</small></span>
-              </button>
+            <label class="purpose-label">Tell the AI what kind of base you want</label>
+            <div class="purpose-grid ai-purpose-grid" role="radiogroup" aria-label="AI base purpose">
+              <button class="purpose-card selected" type="button" data-purpose="AI Surprise" role="radio" aria-checked="true"><span class="purpose-icon">🎲</span><span><strong>AI Surprise</strong><small>Invent something unexpected</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Fun" role="radio" aria-checked="false"><span class="purpose-icon">🎨</span><span><strong>Fun</strong><small>Funny, playful, unusual</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Character" role="radio" aria-checked="false"><span class="purpose-icon">🧙</span><span><strong>Character</strong><small>People, heroes, mascots</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Creature" role="radio" aria-checked="false"><span class="purpose-icon">🐉</span><span><strong>Creature</strong><small>Dragon, animal, monster</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Icon / Symbol" role="radio" aria-checked="false"><span class="purpose-icon">❤️</span><span><strong>Icon / Symbol</strong><small>Logo, emoji, emblem</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Shape / Pattern" role="radio" aria-checked="false"><span class="purpose-icon">🔷</span><span><strong>Shape / Pattern</strong><small>Spiral, star, geometry</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Maze / Puzzle" role="radio" aria-checked="false"><span class="purpose-icon">🧩</span><span><strong>Maze / Puzzle</strong><small>Routes, traps, puzzles</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Meme / Troll" role="radio" aria-checked="false"><span class="purpose-icon">😈</span><span><strong>Meme / Troll</strong><small>Funny or confusing</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Theme" role="radio" aria-checked="false"><span class="purpose-icon">🏰</span><span><strong>Theme</strong><small>Castle, space, fire, etc.</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Fantasy" role="radio" aria-checked="false"><span class="purpose-icon">✨</span><span><strong>Fantasy</strong><small>Magic and mythical ideas</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Letter / Number" role="radio" aria-checked="false"><span class="purpose-icon">🔤</span><span><strong>Letter / Number</strong><small>Initials, numbers, symbols</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Abstract" role="radio" aria-checked="false"><span class="purpose-icon">🌀</span><span><strong>Abstract</strong><small>Patterns without a fixed object</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Experimental" role="radio" aria-checked="false"><span class="purpose-icon">🧪</span><span><strong>Experimental</strong><small>AI tries unusual structures</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="War" role="radio" aria-checked="false"><span class="purpose-icon">⚔</span><span><strong>War</strong><small>Use the verified community catalog</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Farm" role="radio" aria-checked="false"><span class="purpose-icon">🌾</span><span><strong>Farming</strong><small>Use the verified community catalog</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Trophy" role="radio" aria-checked="false"><span class="purpose-icon">🏆</span><span><strong>Trophy</strong><small>Use the verified community catalog</small></span></button>
+              <button class="purpose-card" type="button" data-purpose="Hybrid" role="radio" aria-checked="false"><span class="purpose-icon">⚖</span><span><strong>Hybrid</strong><small>Use the verified community catalog</small></span></button>
             </div>
-            <button id="generateBase" class="primary">🤖 AI Generate Base</button>
-            <p id="basePurposeStatus" class="status">Select a base purpose.</p>
+            <div class="creative-controls">
+              <label class="purpose-label" for="creativePrompt">Optional idea for the AI</label>
+              <textarea id="creativePrompt" rows="3" placeholder="Example: TH10 dragon eye, funny but still defensive. Or leave it empty and let AI invent everything."></textarea>
+              <button id="surpriseBase" class="secondary" type="button">🎲 Give AI a fresh idea</button>
+            </div>
+            <button id="generateBase" class="primary">✨ AI Generate Base Ideas</button>
+            <p id="basePurposeStatus" class="status">AI Surprise selected. The AI can invent the concept.</p>
+            <div id="aiIdeas" class="ai-ideas" hidden></div>
           </div>
 
-          <div id="status" class="status" role="status">COC frontend V10 loading…</div>
-          <div class="build-marker">Frontend build: V10 · 2026-09-20</div>
+          <div id="status" class="status" role="status">COC frontend V12 loading…</div>
+          <div class="build-marker">Frontend build: V12 · 2026-09-20</div>
           <button id="retry" class="retry secondary" type="button">Reload Town Hall data</button>
           <p class="hint">The page uses the Render backend as the authoritative source. If it is unreachable, verified stats remain blank rather than showing stale bundled data.</p>
         </div>
@@ -227,9 +234,16 @@
         <div id="baseValidationNote" class="validation-note">Waiting for server validation.</div>
       </section>
 
-      <!-- ORDER 05 — BUILD LOG -->
+      <section id="creativeBlueprintResult" class="order result" hidden>
+        <div class="order-tag"><span class="order-num">05</span><span class="order-name">AI blueprint</span></div>
+        <div class="result-head"><div><h2 id="blueprintName">Creative Blueprint</h2><p id="blueprintSummary" class="summary"></p></div></div>
+        <div id="blueprintCanvas" class="blueprint-canvas"></div>
+        <div id="blueprintMeta" class="validation-note"></div>
+      </section>
+
+      <!-- ORDER 06 — BUILD LOG -->
       <section class="order roadmap">
-        <div class="order-tag"><span class="order-num">06</span><span class="order-name">Build log</span></div>
+        <div class="order-tag"><span class="order-num">07</span><span class="order-name">Build log</span></div>
         <h2>What's shipped, what's next</h2>
         <div class="roadmap-grid">
           <div class="roadmap-item done"><b>01</b><span>Verified game-data API</span></div>
@@ -237,14 +251,15 @@
           <div class="roadmap-item done"><b>03</b><span>Server-side validation</span></div>
           <div class="roadmap-item done"><b>04</b><span>Army Link / Open in CoC</span></div>
           <div class="roadmap-item done"><b>05</b><span>AI base purpose + verified layout links</span></div>
-          <div class="roadmap-item"><b>06</b><span>Multi-layout recommendations</span></div>
+          <div class="roadmap-item done"><b>06</b><span>AI creative idea engine + blueprint pipeline</span></div>
+          <div class="roadmap-item"><b>08</b><span>Full TH inventory + playable export authoring</span></div>
         </div>
       </section>
 
     </main>
   </div>
 
-  <footer>Jagathish COC · AI Army &amp; Base Lab v10 · Independent fan tool · Not affiliated with Supercell</footer>
-  <script src="./app-v7.js?v=20260920-91"></script>
+  <footer>Jagathish COC · AI Army &amp; Base Lab v12 · Independent fan tool · Not affiliated with Supercell</footer>
+  <script src="./app-v7.js?v=20260920-120"></script>
 </body>
 </html>

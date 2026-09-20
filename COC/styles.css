@@ -395,3 +395,33 @@ footer{
   max-height: 520px;
   object-fit: contain;
 }
+
+.creative-controls{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.creative-controls textarea{width:100%;resize:vertical;box-sizing:border-box;margin:6px 0 8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#111;font:inherit}
+.blueprint-canvas{display:grid;grid-template-columns:repeat(22,1fr);max-width:660px;aspect-ratio:1;margin:auto;border:1px solid var(--line);background:#0b1420;overflow:hidden}
+.blueprint-cell{min-width:0;border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)}
+.blueprint-cell.core{background:#8a4d91}.blueprint-cell.defense{background:#365f87}.blueprint-cell.wall{background:#8b6a43}.blueprint-cell.resource{background:#4b7b55}.blueprint-cell.decor{background:#5d4f82}
+
+/* ---------------- AI Base Lab V12 ---------------- */
+.ai-purpose-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+.ai-purpose-grid .purpose-card{min-height:88px;align-items:flex-start;}
+.ai-purpose-grid .purpose-card[data-purpose="War"],
+.ai-purpose-grid .purpose-card[data-purpose="Farm"],
+.ai-purpose-grid .purpose-card[data-purpose="Trophy"],
+.ai-purpose-grid .purpose-card[data-purpose="Hybrid"]{background:rgba(255,255,255,.18);}
+.ai-ideas{margin-top:16px;padding:14px;border:1px solid var(--ink);background:rgba(255,255,255,.18);}
+.ai-ideas-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.ai-ideas-head strong{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;display:block;}
+.ai-ideas-head span{font-size:11px;color:var(--ink-soft);}
+.ai-idea-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.ai-idea-card{border:1px solid var(--ink);background:var(--paper);padding:14px;display:flex;gap:12px;min-width:0;box-shadow:3px 3px 0 rgba(34,29,19,.12);}
+.ai-idea-icon{font-size:30px;line-height:1;flex:none;}
+.ai-idea-body{min-width:0;display:flex;flex-direction:column;align-items:flex-start;}
+.ai-idea-title{font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;}
+.ai-idea-category{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--brass-deep);margin-top:5px;}
+.ai-idea-card p{font-size:12px;line-height:1.45;color:var(--ink-soft);margin:8px 0;}
+.ai-idea-meta{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px;}
+.ai-idea-meta span{font-family:var(--font-mono);font-size:9px;border:1px solid var(--paper-line);padding:3px 5px;}
+.ai-idea-card .secondary{min-height:38px;padding:0 10px;font-size:10px;margin-top:auto;}
+@media(max-width:900px){.ai-purpose-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.ai-idea-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){.ai-purpose-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.ai-purpose-grid .purpose-card{min-height:74px;padding:9px;}.ai-idea-card{padding:11px;}.ai-idea-title{font-size:19px;}}
