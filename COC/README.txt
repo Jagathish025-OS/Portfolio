@@ -1,24 +1,28 @@
-JAGATHISH COC /COC prototype
+# Jagathish COC
 
-Upload the entire COC folder into the same public web directory that contains:
-  index.html
-  AZ.html
-  notes.html
+This `/COC` frontend connects to the existing Render Node backend:
 
-Then open:
-  https://jagathish.online/COC
+`https://jagathish-backend.onrender.com`
 
-This prototype:
-- does not modify your existing Jagathish Cloud files
-- loads Town Hall capacity data from the uploaded ClashArmies game-data source
-- demonstrates the TH selector and automatic capacity display
-- does NOT pretend to generate an AI army yet
+## Current flow
 
-Next development milestone:
-1. automatic structured game-data sync
-2. TH10/11/12 validation
-3. AI army backend
-4. Army Link generation
-5. AI base generator
+1. User selects only a Town Hall.
+2. Browser loads verified CoC game data from `/api/coc/game-data`.
+3. "AI Generate Army" calls `/api/coc/generate-army`.
+4. The backend sends verified Town Hall data to OpenRouter.
+5. The backend validates the returned army before the browser displays it.
+6. The UI shows Army Camp, Spells, Siege Machine, Clan Castle, Heroes, Pets, Equipment and Attack Guide.
 
-The included game-data.json5 is the source file from the uploaded clash-armies project and should be treated as a development reference, not a claim of live/official Supercell data.
+## Deploy
+
+Upload/replace the `COC` folder in the same Portfolio deployment that serves:
+
+- `/`
+- `/AZ`
+- `/COC`
+
+No API key is stored in this frontend.
+
+## Notes
+
+The CoC data source is community-maintained and is not an official Supercell API. The backend is the authority for the data used by the generator.

@@ -1,8 +1,228 @@
+const BACKEND_URL = 'https://jagathish-backend.onrender.com';
 const $ = (id) => document.getElementById(id);
-let townHalls = [];
-async function loadData(){const r=await fetch('./data/townhalls.json');if(!r.ok)throw Error('Could not load Town Hall data');townHalls=await r.json();const s=$('townHall');s.innerHTML=townHalls.map(t=>`<option value="${t.level}">Town Hall ${t.level}</option>`).join('');s.value='10';render();$('status').textContent='Town Hall data loaded. Select a TH and generate an army.';}
-function render(){const th=townHalls.find(x=>x.level===Number($('townHall').value));if(!th)return;$('thTitle').textContent=`Town Hall ${th.level}`;$('troopCapacity').textContent=th.troopCapacity;$('spellCapacity').textContent=th.spellCapacity;$('siegeCapacity').textContent=th.siegeCapacity;$('ccTroopCapacity').textContent=th.ccTroopCapacity;$('ccSpellCapacity').textContent=th.ccSpellCapacity;$('ccSiegeCapacity').textContent=th.ccSiegeCapacity;$('heroes').innerHTML=(th.heroMaxLevels||[]).map(h=>`<div class="hero-pill">${h.hero}: <b>Lv. ${h.maxLevel}</b></div>`).join('')||'<div class="hero-pill">No hero data</div>';}
-function rows(items){if(!items?.length)return '<div class="empty">None</div>';return items.map(x=>`<div class="unit-row"><span>${x.name}</span><span class="qty">×${x.quantity??''}</span></div>`).join('');}
-$('townHall').addEventListener('change',render);
-$('generate').addEventListener('click',async()=>{const level=Number($('townHall').value);const btn=$('generate');btn.disabled=true;btn.textContent='Generating…';$('status').textContent=`Building verified TH${level} context and requesting AI…`;$('result').hidden=true;try{const r=await fetch('./api/generate-army.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({townHall:level})});const d=await r.json();if(!r.ok)throw Error(d.error||'Generation failed');$('armyName').textContent=d.armyName||`TH${level} AI Army`;$('usage').textContent=`${d.usage?.troops??'?'} / ${d.usage?.troopCapacity??'?'} troops · ${d.usage?.spells??'?'} / ${d.usage?.spellCapacity??'?'} spells`;$('troops').innerHTML=rows(d.troops);$('spells').innerHTML=rows(d.spells);$('siege').innerHTML=d.siegeMachine?`<div class="unit-row"><span>${d.siegeMachine}</span><span class="qty">1</span></div>`:'<div class="empty">None</div>';$('cc').innerHTML=`<div class="empty">Troops: ${(d.clanCastle?.troops||[]).map(x=>x.name+' ×'+x.quantity).join(', ')||'Not specified'}</div><div class="empty" style="margin-top:8px">Spells: ${(d.clanCastle?.spells||[]).map(x=>x.name+' ×'+x.quantity).join(', ')||'Not specified'}</div>`;$('heroesResult').innerHTML=(d.heroes||[]).map(x=>`<div class="unit-row"><span>${x}</span></div>`).join('')||'<div class="empty">None</div>';$('pets').innerHTML=(d.pets||[]).map(x=>`<div class="unit-row"><span>${x}</span></div>`).join('')||'<div class="empty">None</div>';$('strategy').innerHTML=(d.strategy||[]).map(x=>`<li>${x}</li>`).join('');$('result').hidden=false;$('status').textContent='Army generated and passed capacity validation.';$('result').scrollIntoView({behavior:'smooth'});}catch(e){$('status').textContent=e.message;}finally{btn.disabled=false;btn.textContent='🤖 Generate Army';}});
-loadData().catch(e=>{$('status').textContent=e.message});
+
+let currentData = null;
+let currentResult = null;
+
+const townHalls = Array.from({ length: 18 }, (_, i) => i + 1);
+
+function setStatus(message, kind = '') {
+  const el = $('status');
+  el.textContent = message;
+  el.className = `status ${kind}`.trim();
+}
+
+function fillTownHalls() {
+  const select = $('townHall');
+  select.innerHTML = townHalls
+    .map(level => `<option value="${level}">Town Hall ${level}</option>`)
+    .join('');
+  select.value = '10';
+}
+
+function rows(items, countKey = 'count') {
+  if (!Array.isArray(items) || !items.length) return '<div class="empty">None</div>';
+  return items.map(item => {
+    const name = escapeHtml(item.name ?? '');
+    const count = item[countKey] ?? '';
+    return `<div class="unit-row"><span>${name}</span><span class="qty">${count ? `×${count}` : ''}</span></div>`;
+  }).join('');
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function renderGameData(data) {
+  currentData = data;
+  const th = Number(data.townHall);
+
+  $('thTitle').textContent = `Town Hall ${th}`;
+  $('troopCapacity').textContent = data.army?.totalCapacity ?? '—';
+  $('spellCapacity').textContent = data.spellCapacity ?? '—';
+  $('ccTroopCapacity').textContent = data.clanCastle?.troopCapacity ?? '—';
+  $('ccSpellCapacity').textContent = data.clanCastle?.spellCapacity ?? '—';
+  $('ccSiegeCapacity').textContent = data.clanCastle?.siegeMachineCapacity ?? '—';
+  $('availableTroops').textContent = Array.isArray(data.troops) ? data.troops.length : '—';
+
+  $('sourceBadge').textContent = data.dataVersion
+    ? `Verified server data · ${data.dataVersion}`
+    : 'Verified server data';
+
+  $('heroes').innerHTML = (data.heroes || []).map(hero =>
+    `<div class="hero-pill">${escapeHtml(hero.name)} <b>Lv. ${escapeHtml(hero.maxLevel)}</b></div>`
+  ).join('') || '<div class="hero-pill">No heroes unlocked</div>';
+}
+
+async function loadGameData(level) {
+  setStatus(`Loading verified Town Hall ${level} data…`);
+  const response = await fetch(`${BACKEND_URL}/api/coc/game-data?townHall=${level}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Could not load Town Hall data.');
+  renderGameData(data);
+  setStatus(`TH${level} data loaded. Ready to generate an army.`, 'success');
+}
+
+function renderGeneratedArmy(payload) {
+  currentResult = payload;
+  const army = payload.army || {};
+
+  $('armyName').textContent = army.name || `TH${payload.townHall} AI Army`;
+  $('summary').textContent = payload.summary || '';
+
+  const totals = payload.totals || {};
+  $('usage').textContent =
+    `${totals.troopSpace ?? '?'} / ${totals.troopCapacity ?? '?'} troop space · ` +
+    `${totals.spellSpace ?? '?'} / ${totals.spellCapacity ?? '?'} spell space · ` +
+    `${totals.clanCastleTroopSpace ?? '?'} / ${totals.clanCastleTroopCapacity ?? '?'} CC troop space · ` +
+    `${totals.clanCastleSpellSpace ?? '?'} / ${totals.clanCastleSpellCapacity ?? '?'} CC spell space`;
+
+  $('troops').innerHTML = rows(army.troops);
+  $('spells').innerHTML = rows(army.spells);
+
+  $('siege').innerHTML = army.siegeMachine
+    ? `<div class="unit-row"><span>${escapeHtml(army.siegeMachine)}</span><span class="qty">×1</span></div>`
+    : '<div class="empty">None selected</div>';
+
+  const ccTroops = rows(army.clanCastleTroops);
+  const ccSpells = rows(army.clanCastleSpells);
+  $('cc').innerHTML = `
+    <div class="sub-label">Troops</div>${ccTroops}
+    <div class="sub-label spell-label">Spells</div>${ccSpells}
+  `;
+
+  $('heroesResult').innerHTML = (army.heroes || []).map(hero =>
+    `<div class="unit-row"><span>${escapeHtml(hero)}</span><span class="qty">Active</span></div>`
+  ).join('') || '<div class="empty">None</div>';
+
+  $('pets').innerHTML = (army.pets || []).map(pair =>
+    `<div class="unit-row"><span>${escapeHtml(pair.hero)}</span><span class="qty">${escapeHtml(pair.pet)}</span></div>`
+  ).join('') || '<div class="empty">No pet assignment</div>';
+
+  $('equipment').innerHTML = (army.equipment || []).map(pair =>
+    `<div class="unit-row"><span>${escapeHtml(pair.hero)}</span><span class="qty">${escapeHtml(pair.equipment)}</span></div>`
+  ).join('') || '<div class="empty">No equipment assignment</div>';
+
+  const guide = payload.attackGuide || [];
+  $('strategy').innerHTML = guide.length
+    ? guide.map(phase => `
+        <div class="guide-phase">
+          <h3>${escapeHtml(phase.phase)}</h3>
+          <ol>${(phase.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>
+        </div>
+      `).join('')
+    : '<div class="empty">No attack guide returned.</div>';
+
+  $('result').hidden = false;
+  $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function generateArmy() {
+  const level = Number($('townHall').value);
+  const button = $('generate');
+
+  button.disabled = true;
+  button.textContent = 'Generating…';
+  $('result').hidden = true;
+  setStatus(`Building verified TH${level} context and asking the AI…`);
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/coc/generate-army`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ townHall: level })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const details = Array.isArray(data.validationErrors)
+        ? ` ${data.validationErrors.join(' ')}`
+        : '';
+      throw new Error((data.error || 'Army generation failed.') + details);
+    }
+
+    renderGeneratedArmy(data);
+    setStatus('Army generated and passed server-side validation.', 'success');
+  } catch (error) {
+    setStatus(error.message || 'Something went wrong.', 'error');
+  } finally {
+    button.disabled = false;
+    button.textContent = '🤖 AI Generate Army';
+  }
+}
+
+function buildCopyText() {
+  if (!currentResult?.army) return '';
+  const army = currentResult.army;
+  const lines = [
+    `JAGATHISH COC — TH${currentResult.townHall} AI ARMY`,
+    '',
+    'ARMY CAMP',
+    ...(army.troops || []).map(x => `${x.name} ×${x.count}`),
+    '',
+    'SPELLS',
+    ...(army.spells || []).map(x => `${x.name} ×${x.count}`),
+    '',
+    `SIEGE MACHINE: ${army.siegeMachine || 'None'}`,
+    '',
+    'CLAN CASTLE TROOPS',
+    ...(army.clanCastleTroops || []).map(x => `${x.name} ×${x.count}`),
+    '',
+    'CLAN CASTLE SPELLS',
+    ...(army.clanCastleSpells || []).map(x => `${x.name} ×${x.count}`),
+    '',
+    'HEROES',
+    ...(army.heroes || []),
+    '',
+    'PETS',
+    ...(army.pets || []).map(x => `${x.hero}: ${x.pet}`),
+    '',
+    'EQUIPMENT',
+    ...(army.equipment || []).map(x => `${x.hero}: ${x.equipment}`),
+    '',
+    'ATTACK GUIDE',
+    ...(currentResult.attackGuide || []).flatMap(phase => [
+      phase.phase,
+      ...(phase.steps || []).map(step => `- ${step}`)
+    ])
+  ];
+  return lines.join('\n');
+}
+
+$('townHall').addEventListener('change', async () => {
+  $('result').hidden = true;
+  try {
+    await loadGameData(Number($('townHall').value));
+  } catch (error) {
+    setStatus(error.message || 'Could not load Town Hall data.', 'error');
+  }
+});
+
+$('generate').addEventListener('click', generateArmy);
+
+$('copyArmy').addEventListener('click', async () => {
+  const text = buildCopyText();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    const original = $('copyArmy').textContent;
+    $('copyArmy').textContent = '✓ Copied';
+    setTimeout(() => $('copyArmy').textContent = original, 1400);
+  } catch {
+    setStatus('Clipboard access was blocked by the browser.', 'error');
+  }
+});
+
+(async function init() {
+  fillTownHalls();
+  try {
+    await loadGameData(10);
+  } catch (error) {
+    setStatus(`Backend connection failed: ${error.message}`, 'error');
+  }
+})();

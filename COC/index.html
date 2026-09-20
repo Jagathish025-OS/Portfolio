@@ -3,19 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
-  <title>Jagathish COC — AI Army & Base</title>
+  <meta name="theme-color" content="#070b16">
+  <title>Jagathish COC — AI Army Generator</title>
+  <meta name="description" content="Generate Clash of Clans armies from verified Town Hall game data.">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">
+    <a class="brand" href="../" aria-label="Jagathish Cloud home">
       <div class="brand-mark">⚔</div>
       <div>
         <div class="brand-title">JAGATHISH COC</div>
         <div class="brand-sub">AI Army & Base Lab</div>
       </div>
-    </div>
+    </a>
     <a class="back" href="../">← Jagathish Cloud</a>
   </header>
 
@@ -23,66 +24,112 @@
     <section class="hero">
       <div class="eyebrow">CLASH OF CLANS TOOLS</div>
       <h1>AI Army Generator</h1>
-      <p>Select only your Town Hall. The next version will use the verified game-data layer to generate a legal army automatically.</p>
+      <p>Select only your Town Hall. The server loads verified CoC data, asks the AI to build the army, then validates the result before showing it.</p>
 
       <div class="generator-card">
         <label for="townHall">Town Hall</label>
         <div class="control-row">
-          <select id="townHall"></select>
-          <button id="generate" class="primary">🤖 Generate Army</button>
+          <select id="townHall" aria-label="Town Hall"></select>
+          <button id="generate" class="primary">🤖 AI Generate Army</button>
         </div>
-        <div id="status" class="status">Loading Town Hall data…</div>
-        <div class="hint">AI mode requires the server-side AI provider to be configured.</div>
+        <div id="status" class="status" role="status">Connecting to Jagathish Backend…</div>
+        <div class="hint">The first request can take longer when the free Render service is waking up.</div>
       </div>
     </section>
 
     <section id="details" class="details">
       <div class="section-head">
         <div>
-          <div class="eyebrow">GAME DATA</div>
-          <h2 id="thTitle">Town Hall</h2>
+          <div class="eyebrow">VERIFIED GAME DATA</div>
+          <h2 id="thTitle">Town Hall 10</h2>
         </div>
-        <span class="source-badge">Local validated source</span>
+        <span id="sourceBadge" class="source-badge">Server data</span>
       </div>
 
       <div class="stats">
-        <div class="stat"><span>Troop Capacity</span><strong id="troopCapacity">—</strong></div>
+        <div class="stat"><span>Army Camp</span><strong id="troopCapacity">—</strong></div>
         <div class="stat"><span>Spell Capacity</span><strong id="spellCapacity">—</strong></div>
-        <div class="stat"><span>Siege Capacity</span><strong id="siegeCapacity">—</strong></div>
-        <div class="stat"><span>CC Troops</span><strong id="ccTroopCapacity">—</strong></div>
-        <div class="stat"><span>CC Spells</span><strong id="ccSpellCapacity">—</strong></div>
-        <div class="stat"><span>CC Siege</span><strong id="ccSiegeCapacity">—</strong></div>
+        <div class="stat"><span>Clan Castle Troops</span><strong id="ccTroopCapacity">—</strong></div>
+        <div class="stat"><span>Clan Castle Spells</span><strong id="ccSpellCapacity">—</strong></div>
+        <div class="stat"><span>Siege Capacity</span><strong id="ccSiegeCapacity">—</strong></div>
+        <div class="stat"><span>Available Troops</span><strong id="availableTroops">—</strong></div>
       </div>
 
       <div class="heroes-card">
-        <div class="card-title">Hero maximum levels at this Town Hall</div>
+        <div class="card-title">Heroes available at this Town Hall</div>
         <div id="heroes" class="hero-list"></div>
       </div>
     </section>
 
-
     <section id="result" class="result" hidden>
-      <div class="section-head"><div><div class="eyebrow">AI RESULT</div><h2 id="armyName">Generated Army</h2></div><span id="usage" class="source-badge"></span></div>
-      <div class="army-grid">
-        <div class="army-card"><div class="card-title">🏕️ Army Camp</div><div id="troops"></div></div>
-        <div class="army-card"><div class="card-title">✨ Spells</div><div id="spells"></div></div>
-        <div class="army-card"><div class="card-title">🏰 Siege Machine</div><div id="siege"></div></div>
-        <div class="army-card"><div class="card-title">🏯 Clan Castle</div><div id="cc"></div></div>
-        <div class="army-card"><div class="card-title">👑 Heroes</div><div id="heroesResult"></div></div>
-        <div class="army-card"><div class="card-title">🐾 Pets</div><div id="pets"></div></div>
-        <div class="army-card wide"><div class="card-title">📖 Attack Strategy</div><ol id="strategy"></ol></div>
+      <div class="result-head">
+        <div>
+          <div class="eyebrow">AI RESULT</div>
+          <h2 id="armyName">Generated Army</h2>
+          <p id="summary" class="summary"></p>
+        </div>
+        <div class="result-actions">
+          <button id="copyArmy" class="secondary">📋 Copy Army</button>
+          <button id="openCoC" class="secondary" disabled title="Army-link encoding will be added in the next version">⚔ Open in CoC</button>
+        </div>
       </div>
+
+      <div id="usage" class="usage"></div>
+
+      <div class="army-grid">
+        <div class="army-card">
+          <div class="card-title">🏕️ Army Camp</div>
+          <div id="troops"></div>
+        </div>
+
+        <div class="army-card">
+          <div class="card-title">✨ Spells</div>
+          <div id="spells"></div>
+        </div>
+
+        <div class="army-card">
+          <div class="card-title">🏰 Siege Machine</div>
+          <div id="siege"></div>
+        </div>
+
+        <div class="army-card">
+          <div class="card-title">🏯 Clan Castle</div>
+          <div id="cc"></div>
+        </div>
+
+        <div class="army-card">
+          <div class="card-title">👑 Heroes</div>
+          <div id="heroesResult"></div>
+        </div>
+
+        <div class="army-card">
+          <div class="card-title">🐾 Pets</div>
+          <div id="pets"></div>
+        </div>
+
+        <div class="army-card wide">
+          <div class="card-title">🛡️ Equipment</div>
+          <div id="equipment"></div>
+        </div>
+
+        <div class="army-card wide">
+          <div class="card-title">📖 Attack Guide</div>
+          <div id="strategy"></div>
+        </div>
+      </div>
+
+      <div id="validationNote" class="validation-note">✓ Generated by AI and accepted by the server-side CoC validator.</div>
     </section>
 
     <section class="roadmap">
       <div class="eyebrow">BUILD ROADMAP</div>
-      <h2>What comes next</h2>
+      <h2>Jagathish COC</h2>
       <div class="roadmap-grid">
-        <div class="roadmap-item active"><b>01</b><span>Automatic game-data sync</span></div>
-        <div class="roadmap-item"><b>02</b><span>TH10 / TH11 / TH12 validation</span></div>
-        <div class="roadmap-item"><b>03</b><span>AI army generation</span></div>
+        <div class="roadmap-item active"><b>01</b><span>Verified game-data API</span></div>
+        <div class="roadmap-item active"><b>02</b><span>AI army generation</span></div>
+        <div class="roadmap-item active"><b>03</b><span>Server-side validation</span></div>
         <div class="roadmap-item"><b>04</b><span>Army Link / Open in CoC</span></div>
-        <div class="roadmap-item"><b>05</b><span>AI base generation</span></div>
+        <div class="roadmap-item"><b>05</b><span>AI base generator</span></div>
       </div>
     </section>
   </main>
