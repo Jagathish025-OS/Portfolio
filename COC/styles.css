@@ -402,7 +402,7 @@ footer{
 .blueprint-cell{min-width:0;border-right:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)}
 .blueprint-cell.core{background:#8a4d91}.blueprint-cell.defense{background:#365f87}.blueprint-cell.wall{background:#8b6a43}.blueprint-cell.resource{background:#4b7b55}.blueprint-cell.decor{background:#5d4f82}
 
-/* ---------------- AI Base Lab V12 ---------------- */
+/* ---------------- AI Base Lab V14 ---------------- */
 .ai-purpose-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
 .ai-purpose-grid .purpose-card{min-height:88px;align-items:flex-start;}
 .ai-purpose-grid .purpose-card[data-purpose="War"],
@@ -425,3 +425,11 @@ footer{
 .ai-idea-card .secondary{min-height:38px;padding:0 10px;font-size:10px;margin-top:auto;}
 @media(max-width:900px){.ai-purpose-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.ai-idea-grid{grid-template-columns:1fr;}}
 @media(max-width:600px){.ai-purpose-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.ai-purpose-grid .purpose-card{min-height:74px;padding:9px;}.ai-idea-card{padding:11px;}.ai-idea-title{font-size:19px;}}
+
+/* ---------------- AI Creative Layout Compiler V14 ---------------- */
+.blueprint-canvas-v14{grid-template-columns:repeat(44,1fr);max-width:760px;}
+.blueprint-stats{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;font-family:var(--font-mono);font-size:10px;}
+.blueprint-stats span{border:1px solid var(--paper-line);padding:6px 8px;background:rgba(255,255,255,.2);}
+.blueprint-stats b{font-weight:700;}
+.blueprint-cell.trap{background:#b14f4f}.blueprint-cell.support{background:#4b7b55}
+@media(max-width:600px){.blueprint-canvas-v14{max-width:100%;}.blueprint-stats{font-size:9px;}}

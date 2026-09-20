@@ -115,8 +115,8 @@
             <div id="aiIdeas" class="ai-ideas" hidden></div>
           </div>
 
-          <div id="status" class="status" role="status">COC frontend V12 loading…</div>
-          <div class="build-marker">Frontend build: V12 · 2026-09-20</div>
+          <div id="status" class="status" role="status">COC frontend V14 loading…</div>
+          <div class="build-marker">Frontend build: V14 · 2026-09-20</div>
           <button id="retry" class="retry secondary" type="button">Reload Town Hall data</button>
           <p class="hint">The page uses the Render backend as the authoritative source. If it is unreachable, verified stats remain blank rather than showing stale bundled data.</p>
         </div>
@@ -236,9 +236,23 @@
 
       <section id="creativeBlueprintResult" class="order result" hidden>
         <div class="order-tag"><span class="order-num">05</span><span class="order-name">AI blueprint</span></div>
-        <div class="result-head"><div><h2 id="blueprintName">Creative Blueprint</h2><p id="blueprintSummary" class="summary"></p></div></div>
-        <div id="blueprintCanvas" class="blueprint-canvas"></div>
+        <div class="result-head"><div><h2 id="blueprintName">Creative Blueprint</h2><p id="blueprintSummary" class="summary"></p></div><div class="result-actions"><button id="downloadBlueprint" class="secondary" type="button">Download JSON</button><button id="downloadBlueprintSvg" class="secondary" type="button">Download SVG</button></div></div>
+        <div id="blueprintCanvas" class="blueprint-canvas blueprint-canvas-v14"></div>
+        <div id="blueprintStats" class="blueprint-stats"></div>
         <div id="blueprintMeta" class="validation-note"></div>
+      </section>
+
+      <section id="creativeOpenLayoutResult" class="order result" hidden>
+        <div class="order-tag"><span class="order-num">06</span><span class="order-name">Playable OpenLayout</span></div>
+        <div class="result-head">
+          <div><h2 id="creativeOpenLayoutName">Playable Creative Layout</h2><p id="creativeOpenLayoutSummary" class="summary"></p></div>
+          <div class="result-actions"><button id="openCreativeBaseCoC" class="secondary" disabled title="Waiting for a verified Clash of Clans layout link">Open in CoC</button></div>
+        </div>
+        <div class="army-grid">
+          <div class="army-card wide"><div class="card-title">AI concept → playable layout</div><div id="creativeOpenLayoutProfile"></div></div>
+          <div class="army-card wide"><div class="card-title">Community preview</div><div id="creativeOpenLayoutPreview" class="base-preview"></div></div>
+        </div>
+        <div id="creativeOpenLayoutNote" class="validation-note"></div>
       </section>
 
       <!-- ORDER 06 — BUILD LOG -->
@@ -252,14 +266,14 @@
           <div class="roadmap-item done"><b>04</b><span>Army Link / Open in CoC</span></div>
           <div class="roadmap-item done"><b>05</b><span>AI base purpose + verified layout links</span></div>
           <div class="roadmap-item done"><b>06</b><span>AI creative idea engine + blueprint pipeline</span></div>
-          <div class="roadmap-item"><b>08</b><span>Full TH inventory + playable export authoring</span></div>
+          <div class="roadmap-item done"><b>08</b><span>44×44 layout compiler + collision validation</span></div><div class="roadmap-item done"><b>09</b><span>AI concept → genuine OpenLayout matching</span></div>
         </div>
       </section>
 
     </main>
   </div>
 
-  <footer>Jagathish COC · AI Army &amp; Base Lab v12 · Independent fan tool · Not affiliated with Supercell</footer>
-  <script src="./app-v7.js?v=20260920-120"></script>
+  <footer>Jagathish COC · AI Army &amp; Base Lab v14 · Independent fan tool · Not affiliated with Supercell</footer>
+  <script src="./app-v7.js?v=20260920-140"></script>
 </body>
 </html>
