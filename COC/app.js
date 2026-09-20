@@ -50,20 +50,76 @@ function renderGameData(data) {
   const th = Number(data.townHall);
 
   $('thTitle').textContent = `Town Hall ${th}`;
-  $('troopCapacity').textContent = data.army?.totalCapacity ?? '—';
+  $('troopCapacity').textContent = data.army?.totalCapacity ?? data.troopCapacity ?? '—';
   $('spellCapacity').textContent = data.spellCapacity ?? '—';
   $('ccTroopCapacity').textContent = data.clanCastle?.troopCapacity ?? '—';
   $('ccSpellCapacity').textContent = data.clanCastle?.spellCapacity ?? '—';
   $('ccSiegeCapacity').textContent = data.clanCastle?.siegeMachineCapacity ?? '—';
   $('availableTroops').textContent = Array.isArray(data.troops) ? data.troops.length : '—';
 
-  $('sourceBadge').textContent = data.dataVersion
-    ? `Verified server data · ${data.dataVersion}`
-    : 'Verified server data';
+  $('sourceBadge').textContent = data.fallback
+    ? `Bundled fallback · ${data.dataVersion || 'local dataset'}`
+    : (data.dataVersion ? `Verified server data · ${data.dataVersion}` : 'Verified server data');
 
   $('heroes').innerHTML = (data.heroes || []).map(hero =>
     `<div class="hero-pill">${escapeHtml(hero.name)} <b>Lv. ${escapeHtml(hero.maxLevel)}</b></div>`
   ).join('') || '<div class="hero-pill">No heroes unlocked</div>';
+}
+
+async function fetchJson(url, options = {}) {
+  const response = await fetch(url, {
+    cache: 'no-store',
+    ...options
+  });
+  const raw = await response.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+  if (!response.ok) {
+    throw new Error(data.error || `HTTP ${response.status}`);
+  }
+  return data;
+}
+
+async function loadLocalSnapshot(level) {
+  const catalog = await fetchJson('./data/game-data.json');
+  const th = (catalog.townHalls || []).find(x => Number(x.level) === Number(level));
+  if (!th) throw new Error(`No local Town Hall ${level} dataset is available.`);
+
+  const eligible = (items, getReq) => (items || []).map(item => {
+    const levels = (item.levels || []).filter(l => {
+      const req = getReq(l);
+      return req == null || Number(req) <= Number(level);
+    });
+    if (!levels.length) return null;
+    const max = levels[levels.length - 1];
+    return {
+      id: item.clashId,
+      name: item.name,
+      housingSpace: Number(item.housingSpace || 0),
+      maxLevel: Number(max.level || 0)
+    };
+  }).filter(Boolean);
+
+  const heroes = (th.heroMaxLevels || []).map(x => ({
+    name: x.hero,
+    maxLevel: x.maxLevel
+  }));
+
+  return {
+    townHall: Number(level),
+    dataVersion: 'bundled CoC dataset',
+    fallback: true,
+    army: { totalCapacity: Number(th.troopCapacity || 0) },
+    spellCapacity: Number(th.spellCapacity || 0),
+    clanCastle: {
+      troopCapacity: Number(th.ccTroopCapacity || 0),
+      spellCapacity: Number(th.ccSpellCapacity || 0),
+      siegeMachineCapacity: Number(th.ccSiegeCapacity || 0)
+    },
+    heroes,
+    troops: eligible(catalog.troops, l => l.townHallRequired ?? null),
+    spells: eligible(catalog.spells, l => l.townHallRequired ?? null)
+  };
 }
 
 async function loadGameData(level) {
@@ -72,38 +128,44 @@ async function loadGameData(level) {
   const timer = setTimeout(() => controller.abort(), 30000);
 
   try {
-    const response = await fetch(
+    const data = await fetchJson(
       `${BACKEND_URL}/api/coc/game-data?townHall=${encodeURIComponent(level)}`,
       {
         method: 'GET',
-        cache: 'no-store',
         mode: 'cors',
         signal: controller.signal,
         headers: { 'Accept': 'application/json' }
       }
     );
 
-    const raw = await response.text();
-    let data = {};
-    try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
-
-    if (!response.ok) {
-      throw new Error(data.error || `Backend returned HTTP ${response.status}.`);
-    }
     if (!data || Number(data.townHall) !== Number(level)) {
       throw new Error('Backend returned an unexpected Town Hall response.');
     }
 
     renderGameData(data);
-    setStatus(`TH${level} data loaded. Ready to generate an army.`, 'success');
+    setStatus(`TH${level} data loaded from Jagathish Backend. Ready to generate an army.`, 'success');
+    return;
   } catch (error) {
-    if (error.name === 'AbortError') {
-      throw new Error('The backend took too long to respond. Render may still be waking up. Tap Retry.');
+    // Keep the page useful even if Render is sleeping or the browser cannot
+    // complete the cross-origin request. This fallback is data-only; AI
+    // generation still requires the backend and never invents an army here.
+    try {
+      const local = await loadLocalSnapshot(level);
+      renderGameData(local);
+      setStatus(
+        `Backend unavailable — showing bundled TH${level} data. AI generation still requires the backend.`,
+        'error'
+      );
+      return;
+    } catch (fallbackError) {
+      if (error?.name === 'AbortError') {
+        throw new Error('The backend took too long to respond and the local dataset could not be loaded.');
+      }
+      throw new Error(
+        `Backend connection failed: ${error?.message || 'unknown error'}. ` +
+        `Local fallback also failed: ${fallbackError?.message || 'unknown error'}.`
+      );
     }
-    if (error instanceof TypeError) {
-      throw new Error('The browser could not connect to the CoC backend. Check the backend URL/CORS and try again.');
-    }
-    throw error;
   } finally {
     clearTimeout(timer);
   }
@@ -188,7 +250,7 @@ async function generateArmy() {
     }
 
     renderGeneratedArmy(data);
-    setStatus('Army generated and passed server-side validation.', 'success');
+    setStatus('Army generated by AI and passed server-side validation.', 'success');
   } catch (error) {
     setStatus(error.message || 'Something went wrong.', 'error');
   } finally {
@@ -276,6 +338,6 @@ $('retry').addEventListener('click', async () => {
   try {
     await loadGameData(10);
   } catch (error) {
-    setStatus(`Backend connection failed: ${error.message}`, 'error');
+    setStatus(`Unable to load Town Hall data: ${error.message}`, 'error');
   }
 })();

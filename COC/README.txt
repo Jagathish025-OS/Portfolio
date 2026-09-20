@@ -26,3 +26,7 @@ No API key is stored in this frontend.
 ## Notes
 
 The CoC data source is community-maintained and is not an official Supercell API. The backend is the authority for the data used by the generator.
+
+
+## v4 fix
+The frontend first loads live data from the Render Node backend. If the browser cannot reach the backend, it falls back to the bundled structured dataset for Town Hall stats so the page does not remain blank. AI army generation continues to require the backend and is never generated from the fallback.
