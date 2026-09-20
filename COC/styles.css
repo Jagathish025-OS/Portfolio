@@ -433,3 +433,6 @@ footer{
 .blueprint-stats b{font-weight:700;}
 .blueprint-cell.trap{background:#b14f4f}.blueprint-cell.support{background:#4b7b55}
 @media(max-width:600px){.blueprint-canvas-v14{max-width:100%;}.blueprint-stats{font-size:9px;}}
+
+
+.blueprint-inventory{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}.inventory-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(30,45,35,.22);padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.25);font-size:.78rem}.blueprint-inventory-title{margin-top:14px}
