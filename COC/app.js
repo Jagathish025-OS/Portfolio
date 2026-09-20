@@ -15,12 +15,16 @@ function setStatus(message, kind = '') {
 function fillTownHalls() {
   const select = $('townHall');
   if (!select) return;
-  // Keep the options in the HTML too, but rebuild them here in case an older
-  // cached page has an empty <select>.
-  select.innerHTML = townHalls
-    .map(level => `<option value="${level}">Town Hall ${level}</option>`)
-    .join('');
-  select.value = '10';
+
+  // The options are embedded in index.html so the dropdown works even if
+  // JavaScript/backend is unavailable. Only repair the list if an old cached
+  // page somehow still has an empty select.
+  if (!select.options.length) {
+    select.innerHTML = townHalls
+      .map(level => `<option value="${level}">Town Hall ${level}</option>`)
+      .join('');
+  }
+  if (!select.value) select.value = '10';
 }
 
 function rows(items, countKey = 'count') {
@@ -269,18 +273,6 @@ $('retry').addEventListener('click', async () => {
 
 (async function init() {
   fillTownHalls();
-  const select = $('townHall');
-  if (select) {
-    select.addEventListener('change', async () => {
-      $('result').hidden = true;
-      try {
-        await loadGameData(Number(select.value));
-      } catch (error) {
-        setStatus(error.message || 'Could not load Town Hall data.', 'error');
-      }
-    });
-  }
-
   try {
     await loadGameData(10);
   } catch (error) {
