@@ -1,3 +1,3 @@
-COC AI frontend V6
+COC AI V7
 
-Deploy the entire COC folder. V6 loads bundled structured CoC data immediately, then refreshes it from the Jagathish Backend when reachable. AI army generation always calls the backend.
+Deploy the entire COC folder. The frontend has its verified local Town Hall snapshots embedded in app-v7.js, so it does not depend on /data/game-data.json for initial rendering. The Render backend is still used for authoritative refresh and AI generation.
