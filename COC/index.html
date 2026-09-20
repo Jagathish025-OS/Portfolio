@@ -32,39 +32,84 @@
 
     <main class="sheet">
 
-      <!-- ORDER 01 — REQUEST -->
-      <section class="order" id="order-request">
-        <div class="order-tag"><span class="order-num">01</span><span class="order-name">Request</span></div>
-        <h1>Requisition an army</h1>
-        <p class="lede">Name your Town Hall. We pull its verified stats from the server, an AI drafts the roster, and nothing reaches you until the validator signs off on it.</p>
+      <!-- ORDER 01 — GENERATOR SETUP -->
+      <section class="order" id="generator-setup">
+        <div class="order-tag"><span class="order-num">01</span><span class="order-name">Generator</span></div>
+        <h1 id="generatorTitle">Choose your generator</h1>
+        <p id="generatorLede" class="lede">Choose an AI tool, select your Town Hall, then generate a verified Clash of Clans result.</p>
 
-        <div class="generator-card">
+        <div class="generator-switch" role="tablist" aria-label="Generator type">
+          <button id="modeArmy" class="mode-card active" type="button" role="tab" aria-selected="true">
+            <span class="mode-icon">⚔</span>
+            <span class="mode-copy">
+              <strong>AI Army Generator</strong>
+              <span>Build a Town Hall attack army with verified capacities and a shareable CoC link.</span>
+            </span>
+          </button>
+          <button id="modeBase" class="mode-card" type="button" role="tab" aria-selected="false">
+            <span class="mode-icon">🏰</span>
+            <span class="mode-copy">
+              <strong>AI Base Layout Generator</strong>
+              <span>Choose a base purpose and receive a verified community layout for your Town Hall.</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="generator-card generator-card-wide">
           <label for="townHall">Town Hall level</label>
           <div class="control-row">
             <select id="townHall" aria-label="Town Hall">
-            <option value="1">Town Hall 1</option>
-            <option value="2">Town Hall 2</option>
-            <option value="3">Town Hall 3</option>
-            <option value="4">Town Hall 4</option>
-            <option value="5">Town Hall 5</option>
-            <option value="6">Town Hall 6</option>
-            <option value="7">Town Hall 7</option>
-            <option value="8">Town Hall 8</option>
-            <option value="9">Town Hall 9</option>
-            <option value="10" selected>Town Hall 10</option>
-            <option value="11">Town Hall 11</option>
-            <option value="12">Town Hall 12</option>
-            <option value="13">Town Hall 13</option>
-            <option value="14">Town Hall 14</option>
-            <option value="15">Town Hall 15</option>
-            <option value="16">Town Hall 16</option>
-            <option value="17">Town Hall 17</option>
-            <option value="18">Town Hall 18</option>
-          </select>
+              <option value="1">Town Hall 1</option>
+              <option value="2">Town Hall 2</option>
+              <option value="3">Town Hall 3</option>
+              <option value="4">Town Hall 4</option>
+              <option value="5">Town Hall 5</option>
+              <option value="6">Town Hall 6</option>
+              <option value="7">Town Hall 7</option>
+              <option value="8">Town Hall 8</option>
+              <option value="9">Town Hall 9</option>
+              <option value="10" selected>Town Hall 10</option>
+              <option value="11">Town Hall 11</option>
+              <option value="12">Town Hall 12</option>
+              <option value="13">Town Hall 13</option>
+              <option value="14">Town Hall 14</option>
+              <option value="15">Town Hall 15</option>
+              <option value="16">Town Hall 16</option>
+              <option value="17">Town Hall 17</option>
+              <option value="18">Town Hall 18</option>
+            </select>
+          </div>
+
+          <div id="armyControls" class="generator-mode-panel">
             <button id="generate" class="primary">🤖 AI Generate Army</button>
           </div>
-          <div id="status" class="status" role="status">COC frontend V9 loading…</div>
-          <div class="build-marker">Frontend build: V9 · 2026-09-20</div>
+
+          <div id="baseControls" class="generator-mode-panel" hidden>
+            <label class="purpose-label">Base purpose</label>
+            <div class="purpose-grid" role="radiogroup" aria-label="Base purpose">
+              <button class="purpose-card selected" type="button" data-purpose="War" role="radio" aria-checked="true">
+                <span class="purpose-icon">⚔</span>
+                <span><strong>War</strong><small>Defensive war layout</small></span>
+              </button>
+              <button class="purpose-card" type="button" data-purpose="Farm" role="radio" aria-checked="false">
+                <span class="purpose-icon">🌾</span>
+                <span><strong>Farming / Loot</strong><small>Protect resources</small></span>
+              </button>
+              <button class="purpose-card" type="button" data-purpose="Trophy" role="radio" aria-checked="false">
+                <span class="purpose-icon">🏆</span>
+                <span><strong>Trophy</strong><small>Protect trophies</small></span>
+              </button>
+              <button class="purpose-card" type="button" data-purpose="Hybrid" role="radio" aria-checked="false">
+                <span class="purpose-icon">⚖</span>
+                <span><strong>Hybrid</strong><small>Balanced protection</small></span>
+              </button>
+            </div>
+            <button id="generateBase" class="primary">🤖 AI Generate Base</button>
+            <p id="basePurposeStatus" class="status">Select a base purpose.</p>
+          </div>
+
+          <div id="status" class="status" role="status">COC frontend V10 loading…</div>
+          <div class="build-marker">Frontend build: V10 · 2026-09-20</div>
           <button id="retry" class="retry secondary" type="button">Reload Town Hall data</button>
           <p class="hint">The page uses the Render backend as the authoritative source. If it is unreachable, verified stats remain blank rather than showing stale bundled data.</p>
         </div>
@@ -182,21 +227,7 @@
         <div id="baseValidationNote" class="validation-note">Waiting for server validation.</div>
       </section>
 
-      <!-- ORDER 05 — BASE REQUEST -->
-      <section class="order" id="base-request">
-        <div class="order-tag"><span class="order-num">05</span><span class="order-name">Base requisition</span></div>
-        <h2>Request a base</h2>
-        <p class="lede">Name your Town Hall. The AI chooses a base purpose, then the server selects a matching community layout and validates its official Supercell OpenLayout link.</p>
-        <div class="generator-card">
-          <div class="control-row">
-            <span class="status">Uses the same Town Hall selection as the army generator.</span>
-            <button id="generateBase" class="primary">🤖 AI Generate Base</button>
-          </div>
-          <p class="hint">Base layouts are community-shared. The tool does not invent or modify layout payloads; it selects a catalogued layout and validates the link structure before showing it.</p>
-        </div>
-      </section>
-
-      <!-- ORDER 06 — BUILD LOG -->
+      <!-- ORDER 05 — BUILD LOG -->
       <section class="order roadmap">
         <div class="order-tag"><span class="order-num">06</span><span class="order-name">Build log</span></div>
         <h2>What's shipped, what's next</h2>
@@ -205,15 +236,15 @@
           <div class="roadmap-item done"><b>02</b><span>AI army generation</span></div>
           <div class="roadmap-item done"><b>03</b><span>Server-side validation</span></div>
           <div class="roadmap-item done"><b>04</b><span>Army Link / Open in CoC</span></div>
-          <div class="roadmap-item done"><b>05</b><span>AI base selector + verified layout links</span></div>
-          <div class="roadmap-item"><b>06</b><span>Base preview + multi-layout recommendations</span></div>
+          <div class="roadmap-item done"><b>05</b><span>AI base purpose + verified layout links</span></div>
+          <div class="roadmap-item"><b>06</b><span>Multi-layout recommendations</span></div>
         </div>
       </section>
 
     </main>
   </div>
 
-  <footer>Jagathish COC · AI Army &amp; Base Lab v9 · Independent fan tool · Not affiliated with Supercell</footer>
+  <footer>Jagathish COC · AI Army &amp; Base Lab v10 · Independent fan tool · Not affiliated with Supercell</footer>
   <script src="./app-v7.js?v=20260920-91"></script>
 </body>
 </html>
