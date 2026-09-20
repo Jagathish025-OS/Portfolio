@@ -14,6 +14,9 @@ function setStatus(message, kind = '') {
 
 function fillTownHalls() {
   const select = $('townHall');
+  if (!select) return;
+  // Keep the options in the HTML too, but rebuild them here in case an older
+  // cached page has an empty <select>.
   select.innerHTML = townHalls
     .map(level => `<option value="${level}">Town Hall ${level}</option>`)
     .join('');
@@ -61,11 +64,45 @@ function renderGameData(data) {
 
 async function loadGameData(level) {
   setStatus(`Loading verified Town Hall ${level} data…`);
-  const response = await fetch(`${BACKEND_URL}/api/coc/game-data?townHall=${level}`);
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Could not load Town Hall data.');
-  renderGameData(data);
-  setStatus(`TH${level} data loaded. Ready to generate an army.`, 'success');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/api/coc/game-data?townHall=${encodeURIComponent(level)}`,
+      {
+        method: 'GET',
+        cache: 'no-store',
+        mode: 'cors',
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json' }
+      }
+    );
+
+    const raw = await response.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+    if (!response.ok) {
+      throw new Error(data.error || `Backend returned HTTP ${response.status}.`);
+    }
+    if (!data || Number(data.townHall) !== Number(level)) {
+      throw new Error('Backend returned an unexpected Town Hall response.');
+    }
+
+    renderGameData(data);
+    setStatus(`TH${level} data loaded. Ready to generate an army.`, 'success');
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('The backend took too long to respond. Render may still be waking up. Tap Retry.');
+    }
+    if (error instanceof TypeError) {
+      throw new Error('The browser could not connect to the CoC backend. Check the backend URL/CORS and try again.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function renderGeneratedArmy(payload) {
@@ -218,8 +255,32 @@ $('copyArmy').addEventListener('click', async () => {
   }
 });
 
+$('retry').addEventListener('click', async () => {
+  const level = Number($('townHall').value || 10);
+  $('retry').disabled = true;
+  try {
+    await loadGameData(level);
+  } catch (error) {
+    setStatus(error.message || 'Could not load Town Hall data.', 'error');
+  } finally {
+    $('retry').disabled = false;
+  }
+});
+
 (async function init() {
   fillTownHalls();
+  const select = $('townHall');
+  if (select) {
+    select.addEventListener('change', async () => {
+      $('result').hidden = true;
+      try {
+        await loadGameData(Number(select.value));
+      } catch (error) {
+        setStatus(error.message || 'Could not load Town Hall data.', 'error');
+      }
+    });
+  }
+
   try {
     await loadGameData(10);
   } catch (error) {

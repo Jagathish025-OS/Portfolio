@@ -21,3 +21,5 @@ label{display:block;font-size:12px;color:var(--muted);margin-bottom:9px}.control
 footer{text-align:center;color:#5f6c84;font-size:11px;padding:30px 0 45px}
 @media(max-width:800px){.topbar{padding:0 4%}.back{display:none}.control-row,.result-head{flex-direction:column;align-items:stretch}.primary{padding:14px}.result-actions{justify-content:flex-start}.stats{grid-template-columns:repeat(2,1fr)}.roadmap-grid{grid-template-columns:1fr 1fr}.page{padding-top:45px}}
 @media(max-width:520px){.stats,.army-grid{grid-template-columns:1fr}.army-card.wide{grid-column:auto}.roadmap-grid{grid-template-columns:1fr}.hero h1{font-size:42px}.result-head h2{font-size:26px}}
+
+.retry{margin-top:10px;min-height:40px;padding:0 14px;font-size:12px}.retry:disabled{opacity:.5;cursor:wait}
