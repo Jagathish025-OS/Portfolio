@@ -1,49 +1,8 @@
 const $ = (id) => document.getElementById(id);
-
 let townHalls = [];
-
-async function loadData() {
-  const response = await fetch("./data/townhalls.json");
-  if (!response.ok) throw new Error("Could not load Town Hall data.");
-  townHalls = await response.json();
-
-  const select = $("townHall");
-  select.innerHTML = townHalls.map(th =>
-    `<option value="${th.level}">Town Hall ${th.level}</option>`
-  ).join("");
-
-  select.value = "10";
-  render();
-  $("status").textContent = "Town Hall data loaded. AI generation will use this validated data layer.";
-}
-
-function render() {
-  const level = Number($("townHall").value);
-  const th = townHalls.find(x => x.level === level);
-  if (!th) return;
-
-  $("thTitle").textContent = `Town Hall ${level}`;
-  $("troopCapacity").textContent = th.troopCapacity;
-  $("spellCapacity").textContent = th.spellCapacity;
-  $("siegeCapacity").textContent = th.siegeCapacity;
-  $("ccTroopCapacity").textContent = th.ccTroopCapacity;
-  $("ccSpellCapacity").textContent = th.ccSpellCapacity;
-  $("ccSiegeCapacity").textContent = th.ccSiegeCapacity;
-
-  $("heroes").innerHTML = (th.heroMaxLevels || []).map(h =>
-    `<div class="hero-pill">${h.hero}: <b>Lv. ${h.maxLevel}</b></div>`
-  ).join("") || `<div class="hero-pill">No hero data for this Town Hall</div>`;
-}
-
-$("townHall").addEventListener("change", render);
-
-$("generate").addEventListener("click", () => {
-  const level = Number($("townHall").value);
-  $("status").textContent =
-    `TH${level} is selected. The next backend milestone will send this verified data to the AI generator; no fake army is generated in this prototype.`;
-});
-
-loadData().catch(err => {
-  console.error(err);
-  $("status").textContent = "Data could not be loaded.";
-});
+async function loadData(){const r=await fetch('./data/townhalls.json');if(!r.ok)throw Error('Could not load Town Hall data');townHalls=await r.json();const s=$('townHall');s.innerHTML=townHalls.map(t=>`<option value="${t.level}">Town Hall ${t.level}</option>`).join('');s.value='10';render();$('status').textContent='Town Hall data loaded. Select a TH and generate an army.';}
+function render(){const th=townHalls.find(x=>x.level===Number($('townHall').value));if(!th)return;$('thTitle').textContent=`Town Hall ${th.level}`;$('troopCapacity').textContent=th.troopCapacity;$('spellCapacity').textContent=th.spellCapacity;$('siegeCapacity').textContent=th.siegeCapacity;$('ccTroopCapacity').textContent=th.ccTroopCapacity;$('ccSpellCapacity').textContent=th.ccSpellCapacity;$('ccSiegeCapacity').textContent=th.ccSiegeCapacity;$('heroes').innerHTML=(th.heroMaxLevels||[]).map(h=>`<div class="hero-pill">${h.hero}: <b>Lv. ${h.maxLevel}</b></div>`).join('')||'<div class="hero-pill">No hero data</div>';}
+function rows(items){if(!items?.length)return '<div class="empty">None</div>';return items.map(x=>`<div class="unit-row"><span>${x.name}</span><span class="qty">×${x.quantity??''}</span></div>`).join('');}
+$('townHall').addEventListener('change',render);
+$('generate').addEventListener('click',async()=>{const level=Number($('townHall').value);const btn=$('generate');btn.disabled=true;btn.textContent='Generating…';$('status').textContent=`Building verified TH${level} context and requesting AI…`;$('result').hidden=true;try{const r=await fetch('./api/generate-army.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({townHall:level})});const d=await r.json();if(!r.ok)throw Error(d.error||'Generation failed');$('armyName').textContent=d.armyName||`TH${level} AI Army`;$('usage').textContent=`${d.usage?.troops??'?'} / ${d.usage?.troopCapacity??'?'} troops · ${d.usage?.spells??'?'} / ${d.usage?.spellCapacity??'?'} spells`;$('troops').innerHTML=rows(d.troops);$('spells').innerHTML=rows(d.spells);$('siege').innerHTML=d.siegeMachine?`<div class="unit-row"><span>${d.siegeMachine}</span><span class="qty">1</span></div>`:'<div class="empty">None</div>';$('cc').innerHTML=`<div class="empty">Troops: ${(d.clanCastle?.troops||[]).map(x=>x.name+' ×'+x.quantity).join(', ')||'Not specified'}</div><div class="empty" style="margin-top:8px">Spells: ${(d.clanCastle?.spells||[]).map(x=>x.name+' ×'+x.quantity).join(', ')||'Not specified'}</div>`;$('heroesResult').innerHTML=(d.heroes||[]).map(x=>`<div class="unit-row"><span>${x}</span></div>`).join('')||'<div class="empty">None</div>';$('pets').innerHTML=(d.pets||[]).map(x=>`<div class="unit-row"><span>${x}</span></div>`).join('')||'<div class="empty">None</div>';$('strategy').innerHTML=(d.strategy||[]).map(x=>`<li>${x}</li>`).join('');$('result').hidden=false;$('status').textContent='Army generated and passed capacity validation.';$('result').scrollIntoView({behavior:'smooth'});}catch(e){$('status').textContent=e.message;}finally{btn.disabled=false;btn.textContent='🤖 Generate Army';}});
+loadData().catch(e=>{$('status').textContent=e.message});

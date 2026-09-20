@@ -32,6 +32,7 @@
           <button id="generate" class="primary">🤖 Generate Army</button>
         </div>
         <div id="status" class="status">Loading Town Hall data…</div>
+        <div class="hint">AI mode requires the server-side AI provider to be configured.</div>
       </div>
     </section>
 
@@ -56,6 +57,20 @@
       <div class="heroes-card">
         <div class="card-title">Hero maximum levels at this Town Hall</div>
         <div id="heroes" class="hero-list"></div>
+      </div>
+    </section>
+
+
+    <section id="result" class="result" hidden>
+      <div class="section-head"><div><div class="eyebrow">AI RESULT</div><h2 id="armyName">Generated Army</h2></div><span id="usage" class="source-badge"></span></div>
+      <div class="army-grid">
+        <div class="army-card"><div class="card-title">🏕️ Army Camp</div><div id="troops"></div></div>
+        <div class="army-card"><div class="card-title">✨ Spells</div><div id="spells"></div></div>
+        <div class="army-card"><div class="card-title">🏰 Siege Machine</div><div id="siege"></div></div>
+        <div class="army-card"><div class="card-title">🏯 Clan Castle</div><div id="cc"></div></div>
+        <div class="army-card"><div class="card-title">👑 Heroes</div><div id="heroesResult"></div></div>
+        <div class="army-card"><div class="card-title">🐾 Pets</div><div id="pets"></div></div>
+        <div class="army-card wide"><div class="card-title">📖 Attack Strategy</div><ol id="strategy"></ol></div>
       </div>
     </section>
 
