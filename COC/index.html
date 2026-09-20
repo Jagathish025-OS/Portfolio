@@ -63,10 +63,10 @@
           </select>
             <button id="generate" class="primary">🤖 AI Generate Army</button>
           </div>
-          <div id="status" class="status" role="status">COC frontend V7 loading…</div>
-          <div class="build-marker">Frontend build: V8 · 2026-09-20</div>
+          <div id="status" class="status" role="status">COC frontend V8.1 loading…</div>
+          <div class="build-marker">Frontend build: V8.1 · 2026-09-20</div>
           <button id="retry" class="retry secondary" type="button">Reload Town Hall data</button>
-          <p class="hint">The page uses the Render backend first. If it is asleep or unreachable, verified bundled game data keeps the stats visible; AI generation still uses the backend.</p>
+          <p class="hint">The page uses the Render backend as the authoritative source. If it is unreachable, verified stats remain blank rather than showing stale bundled data.</p>
         </div>
       </section>
 
@@ -83,8 +83,10 @@
           <div class="stat"><span>Spell Capacity</span><strong id="spellCapacity">—</strong></div>
           <div class="stat"><span>Clan Castle Troops</span><strong id="ccTroopCapacity">—</strong></div>
           <div class="stat"><span>Clan Castle Spells</span><strong id="ccSpellCapacity">—</strong></div>
-          <div class="stat"><span>Siege Capacity</span><strong id="ccSiegeCapacity">—</strong></div>
+          <div class="stat"><span>Own Siege Capacity</span><strong id="ownSiegeCapacity">—</strong></div>
+          <div class="stat"><span>CC Siege Capacity</span><strong id="ccSiegeCapacity">—</strong></div>
           <div class="stat"><span>Available Troops</span><strong id="availableTroops">—</strong></div>
+          <div class="stat"><span>Available Spells</span><strong id="availableSpells">—</strong></div>
         </div>
 
         <div class="heroes-card">
@@ -170,7 +172,7 @@
     </main>
   </div>
 
-  <footer>Jagathish COC · AI Army Lab v8 · Independent fan tool · Not affiliated with Supercell</footer>
-  <script src="./app-v7.js?v=20260920-8"></script>
+  <footer>Jagathish COC · AI Army Lab v8.1 · Independent fan tool · Not affiliated with Supercell</footer>
+  <script src="./app-v7.js?v=20260920-81"></script>
 </body>
 </html>

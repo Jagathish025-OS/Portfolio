@@ -1,3 +1,3 @@
-COC AI V8
-
-Deploy the entire COC folder. The frontend has its verified local Town Hall snapshots embedded in app-v7.js, so it does not depend on /data/game-data.json for initial rendering. The Render backend is still used for authoritative refresh and AI generation.
+Jagathish COC frontend V8.1.
+Server-authoritative verified game data; no stale bundled snapshot is shown as verified data.
+TH10 distinguishes own siege capacity (0) from Clan Castle siege capacity (1).
