@@ -468,9 +468,15 @@ async function buildCreativeIdea(idea) {
   const level=Number($('townHall').value); selectedCreativeIdea=idea; updateBaseGenerateAvailability();
   $('generateBase').disabled=true; $('generateBase').textContent='🧩 Building…'; $('creativeBlueprintResult').hidden=true; $('creativeOpenLayoutResult').hidden=true;
   try {
+    const wantsCommunityMatch = !!$('includeCommunityMatch')?.checked;
     const response=await fetch(`${BACKEND_URL}/api/coc/generate-base-blueprint`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({townHall:level,basePurpose:selectedBasePurpose,prompt:String($('creativePrompt')?.value||'').trim(),idea})});
     const data=await response.json().catch(()=>({})); if(!response.ok) throw new Error(data.error||'AI blueprint generation failed.');
-    renderCreativeBlueprint(data);
+    renderCreativeBlueprint(data, wantsCommunityMatch);
+    if (!wantsCommunityMatch) {
+      $('creativeOpenLayoutResult').hidden = true;
+      setStatus(`AI concept ${idea.title} compiled into your own TH${level} layout. This is your custom design, not a matched community base.`,'success');
+      return;
+    }
     setStatus(`AI concept ${idea.title} compiled for TH${level}. Finding a genuine playable OpenLayout match…`,'success');
     const matchResponse=await fetch(`${BACKEND_URL}/api/coc/generate-creative-openlayout`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({townHall:level,category:selectedBasePurpose,prompt:String($('creativePrompt')?.value||'').trim(),idea})});
     const match=await matchResponse.json().catch(()=>({})); if(!matchResponse.ok) throw new Error(match.error||'Playable OpenLayout matching failed.');
@@ -480,7 +486,7 @@ async function buildCreativeIdea(idea) {
   finally { updateBaseGenerateAvailability(); }
 }
 
-function renderCreativeBlueprint(payload) {
+function renderCreativeBlueprint(payload, wantsCommunityMatch=true) {
   const b=payload.selected||payload.candidates?.[0]; if(!b) throw new Error('Creative blueprint response was empty.');
   window.currentCreativeBlueprint=b;
   setText('blueprintName',`TH${b.townHall} ${b.idea?.title || b.theme} Blueprint`);
@@ -494,7 +500,7 @@ function renderCreativeBlueprint(payload) {
   setHtml('blueprintStats',`<span>Objects <b>${Number(m.placedObjects||0)}</b></span><span>Walls <b>${Number(m.walls||0)}</b></span><span>Defenses <b>${Number(m.defenses||0)}</b></span><span>Support <b>${Number(m.support||0)}</b></span><span>Traps <b>${Number(m.traps||0)}</b></span><span>Footprints <b>${Number(m.footprints||0)}</b></span><span>Grid <b>${escapeHtml(String(b.gridSize))}×${escapeHtml(String(b.gridSize))}</b></span>`);
   const inv=(b.inventory||[]).map(x=>`<span class="inventory-chip">${escapeHtml(x.icon||'•')} ${escapeHtml(x.id||'object')} ×${Number(x.count||0)}</span>`).join('');
   setHtml('blueprintInventory',inv||'<span class="hint">No inventory data.</span>');
-  setText('blueprintMeta',`${payload.strategySource==='AI'?'AI-designed':'Verified fallback'} · Compiler V16 · Object-footprint validation: ${b.validation?.ok?'PASS':'FAIL'} · Blueprint stage complete. A genuine community OpenLayout match is shown below.`);
+  setText('blueprintMeta',`${payload.strategySource==='AI'?'AI-designed':'Verified fallback'} · Compiler V16 · Object-footprint validation: ${b.validation?.ok?'PASS':'FAIL'} · ${wantsCommunityMatch ? 'Blueprint stage complete. A genuine community OpenLayout match is shown below.' : 'This is your own AI-compiled layout — not matched to any community base. Download the JSON or SVG to build it yourself in-game.'}`);
   $('creativeBlueprintResult').hidden=false; $('creativeBlueprintResult').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
