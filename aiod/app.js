@@ -244,7 +244,7 @@
           body: JSON.stringify({ url: sourceUrl, authorized: true })
         });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.ok !== true) throw new Error(data.message || `Extraction failed (HTTP ${response.status}).`);
+        if (!response.ok || data.ok !== true) throw new Error(data.error || data.message || `Extraction failed (HTTP ${response.status}).`);
         const formats = Array.isArray(data.formats) ? data.formats : [];
         extractedFormats = formats;
         const heights = Array.from(new Set(formats
@@ -267,6 +267,11 @@
         feedback.textContent = "Metadata extracted successfully. Choose MP4 or MP3 to continue.";
       } catch (error) {
         extracted = false;
+        extractedFormats = [];
+        conversion.hidden = true;
+        qualitySelect.replaceChildren(bestOption);
+        formatSummary.textContent = "";
+        sizeEstimate.textContent = "Estimated output size unavailable until extraction succeeds.";
         feedback.textContent = error.message || "Could not extract this source.";
       } finally {
         extractButton.disabled = !consent.checked;
