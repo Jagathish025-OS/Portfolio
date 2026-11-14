@@ -579,7 +579,7 @@
         } else if (data.media && ["image", "document", "file"].includes(data.media.kind) && data.downloadAvailable === true) {
           showOtherDirectFilePreview(data.media, hostname, data.message, data.downloadOptions);
           showDownloadOptions(data.downloadOptions);
-        } else if (video && video.available === true) {
+        } else if (video && platform === "YouTube") {
           showVideoPreview(
             video,
             platform,
