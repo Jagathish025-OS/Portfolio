@@ -179,15 +179,50 @@
     qualityLabel.appendChild(qualitySelect);
     const formatSummary = document.createElement("p");
     formatSummary.className = "aiod-audio-meta";
+    const sizeEstimate = document.createElement("p");
+    sizeEstimate.className = "aiod-audio-meta";
+    sizeEstimate.setAttribute("aria-live", "polite");
+    sizeEstimate.textContent = "Estimated output size: unavailable until source formats are analyzed.";
     const processButton = document.createElement("button");
     processButton.type = "button";
     processButton.className = "aiod-watch-link";
     processButton.textContent = "Convert and download";
-    conversion.append(formatsLabel, qualityLabel, formatSummary, processButton);
+    conversion.append(formatsLabel, qualityLabel, formatSummary, sizeEstimate, processButton);
     panel.appendChild(conversion);
     resultBox.appendChild(panel);
 
     let extracted = false;
+    let extractedFormats = [];
+    const formatBytes = (bytes) => {
+      if (!Number.isFinite(bytes) || bytes <= 0) return null;
+      const units = ["B", "KB", "MB", "GB"];
+      let value = bytes;
+      let unit = 0;
+      while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; }
+      return value.toFixed(unit === 0 ? 0 : 1) + " " + units[unit];
+    };
+    const updateSizeEstimate = () => {
+      if (!extractedFormats.length) return;
+      const audio = extractedFormats.filter((item) => item && item.hasAudio && Number.isFinite(item.filesize));
+      const video = extractedFormats.filter((item) => item && item.hasVideo && Number.isFinite(item.filesize));
+      let estimate = null;
+      if (outputFormat.value === "mp3") {
+        const bestAudio = audio.sort((a, b) => b.filesize - a.filesize)[0];
+        estimate = bestAudio ? bestAudio.filesize : null;
+      } else {
+        const maxHeight = qualitySelect.value ? Number(qualitySelect.value) : Infinity;
+        const candidates = video.filter((item) => Number.isInteger(item.height) && item.height <= maxHeight);
+        const chosenVideo = candidates.sort((a, b) => (b.height - a.height) || ((b.filesize || 0) - (a.filesize || 0)))[0];
+        const audioOnly = audio.filter((item) => !item.hasVideo).sort((a, b) => b.filesize - a.filesize)[0];
+        const combined = (chosenVideo && chosenVideo.filesize || 0) + (audioOnly && audioOnly.filesize || 0);
+        estimate = combined > 0 ? combined : (chosenVideo && chosenVideo.filesize) || null;
+      }
+      sizeEstimate.textContent = estimate
+        ? "Estimated source size: about " + formatBytes(estimate) + " (output may differ after conversion)."
+        : "Estimated output size unavailable; the source did not provide file-size estimates.";
+    };
+    outputFormat.addEventListener("change", updateSizeEstimate);
+    qualitySelect.addEventListener("change", updateSizeEstimate);
     extractButton.addEventListener("click", async () => {
       if (!consent.checked) return;
       extractButton.disabled = true;
@@ -201,7 +236,7 @@
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.ok !== true) throw new Error(data.message || `Extraction failed (HTTP ${response.status}).`);
-        const formats = Array.isArray(data.formats) ? data.formats : [];
+        const formats = Array.isArray(data.formats) ? data.formats : [];\n        extractedFormats = formats;
         const heights = Array.from(new Set(formats
           .filter((item) => item && item.hasVideo === true && Number.isInteger(item.height) && item.height >= 144)
           .map((item) => item.height))).sort((a, b) => a - b);
@@ -241,7 +276,26 @@
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.message || `Processing failed (HTTP ${response.status}).`);
         }
-        const blob = await response.blob();
+        const total = Number(response.headers.get("Content-Length")) || 0;
+        const reader = response.body && response.body.getReader ? response.body.getReader() : null;
+        let received = 0;
+        const chunks = [];
+        if (reader) {
+          while (true) {
+            const part = await reader.read();
+            if (part.done) break;
+            chunks.push(part.value);
+            received += part.value.byteLength;
+            feedback.textContent = total
+              ? "Downloading processed file… " + Math.min(100, Math.round(received / total * 100)) + "% (" + formatBytes(received) + " / " + formatBytes(total) + ")"
+              : "Downloading processed file… " + formatBytes(received) + " received";
+          }
+        } else {
+          const fallbackBlob = await response.blob();
+          chunks.push(fallbackBlob);
+          received = fallbackBlob.size;
+        }
+        const blob = new Blob(chunks, { type: response.headers.get("Content-Type") || "application/octet-stream" });
         if (!blob.size) throw new Error("The server returned an empty file.");
         const objectUrl = URL.createObjectURL(blob);
         const disposition = response.headers.get("Content-Disposition") || "";
