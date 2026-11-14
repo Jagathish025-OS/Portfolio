@@ -88,59 +88,102 @@
 
   function showDownloadOptions(options) {
     if (!resultBox || !Array.isArray(options) || !options.length) return;
+
+    // Only render real HTTP(S) URLs returned by the authorized source/provider.
+    const validOptions = options.map((option) => {
+      if (!option || typeof option.url !== "string") return null;
+      try {
+        const url = new URL(option.url);
+        if (!["https:", "http:"].includes(url.protocol)) return null;
+        return { option, url };
+      } catch (_) { return null; }
+    }).filter(Boolean);
+
+    if (!validOptions.length) return;
+
     const section = document.createElement("section");
     section.className = "aiod-download-options";
     const heading = document.createElement("h3");
-    heading.textContent = "Available authorized file";
+    heading.textContent = validOptions.length > 1 ? "Choose your available format" : "Available authorized file";
     section.appendChild(heading);
 
-    options.forEach((option) => {
-      if (!option || typeof option.url !== "string") return;
-      let safeUrl;
-      try {
-        safeUrl = new URL(option.url);
-        if (safeUrl.protocol !== "https:" && safeUrl.protocol !== "http:") return;
-      } catch (_) { return; }
+    const formatLabel = (option) => {
+      const parts = [
+        option.resolution || option.quality || "",
+        option.format ? String(option.format).toUpperCase() : "",
+        option.sizeLabel || ""
+      ].filter(Boolean);
+      return option.label || parts.join(" · ") || "Original source file";
+    };
+    const sizeText = (option) => {
+      const bytes = Number.isSafeInteger(option.sizeBytes) && option.sizeBytes >= 0 ? option.sizeBytes : null;
+      if (bytes !== null) return bytes < 1024 * 1024
+        ? (bytes / 1024).toFixed(1) + " KB"
+        : (bytes / (1024 * 1024)).toFixed(2) + " MB";
+      return option.sizeLabel || "Size not provided by source";
+    };
+    const detailsText = (option) => [
+      option.filename || "",
+      option.mimeType || "",
+      sizeText(option),
+      option.description || ""
+    ].filter(Boolean).filter((value, index, list) => list.indexOf(value) === index).join(" · ");
 
-      const row = document.createElement("div");
-      row.className = "aiod-download-row";
-      const details = document.createElement("div");
-      const label = document.createElement("strong");
-      label.textContent = option.label || `Original ${option.format || "media"} file`;
-      details.appendChild(label);
-      const meta = document.createElement("span");
-      const sizeBytes = Number.isSafeInteger(option.sizeBytes) && option.sizeBytes >= 0 ? option.sizeBytes : null;
-      const actualSize = sizeBytes === null
-        ? "Size not provided by source"
-        : sizeBytes < 1024 * 1024
-          ? (sizeBytes / 1024).toFixed(1) + " KB"
-          : (sizeBytes / (1024 * 1024)).toFixed(2) + " MB";
-      const mimeType = typeof option.mimeType === "string" ? option.mimeType : "";
-      const filename = typeof option.filename === "string" ? option.filename : "";
-      const detailsText = [option.description, filename, mimeType, actualSize]
-        .filter(Boolean)
-        .filter((value, index, list) => list.indexOf(value) === index)
-        .join(" · ");
-      meta.textContent = detailsText || "Original source file · size not provided by host";
-      details.appendChild(meta);
-      const link = document.createElement("a");
-      link.href = safeUrl.href;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = "Open / save ↗";
-      link.className = "aiod-download-link";
-      link.setAttribute("aria-label", `Open or save ${label.textContent}`);
-      row.append(details, link);
-      section.appendChild(row);
-    });
+    const selectorLabel = document.createElement("label");
+    selectorLabel.className = "aiod-format-label";
+    selectorLabel.textContent = validOptions.length > 1 ? "Available quality / format" : "File details";
+    section.appendChild(selectorLabel);
 
-    if (section.querySelector("a")) {
-      const note = document.createElement("p");
-      note.className = "aiod-download-footnote";
-      note.textContent = "This opens the original file from its host. Your browser or the host decides whether it downloads directly or opens a preview. AIOD does not re-host or convert this file.";
-      section.appendChild(note);
-      resultBox.appendChild(section);
+    let selector = null;
+    if (validOptions.length > 1) {
+      selector = document.createElement("select");
+      selector.className = "aiod-format-select";
+      selector.setAttribute("aria-label", "Choose an available media format");
+      validOptions.forEach(({ option }, index) => {
+        const item = document.createElement("option");
+        item.value = String(index);
+        item.textContent = (option.recommended === true ? "★ " : "") + formatLabel(option);
+        selector.appendChild(item);
+      });
+      const recommendedIndex = validOptions.findIndex(({ option }) => option.recommended === true);
+      selector.selectedIndex = recommendedIndex >= 0 ? recommendedIndex : 0;
+      section.appendChild(selector);
     }
+
+    const row = document.createElement("div");
+    row.className = "aiod-download-row aiod-selected-download";
+    const details = document.createElement("div");
+    const label = document.createElement("strong");
+    const meta = document.createElement("span");
+    details.append(label, meta);
+
+    const link = document.createElement("a");
+    link.className = "aiod-download-link";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "Open / save ↗";
+    link.setAttribute("aria-label", "Open or save selected authorized media file");
+    row.append(details, link);
+    section.appendChild(row);
+
+    function updateSelected(index) {
+      const selected = validOptions[index] || validOptions[0];
+      const option = selected.option;
+      label.textContent = option.filename || formatLabel(option);
+      meta.textContent = detailsText(option) || "Original source file";
+      link.href = selected.url.href;
+      link.setAttribute("aria-label", "Open or save " + label.textContent);
+      link.download = option.filename || "";
+    }
+
+    updateSelected(selector ? selector.selectedIndex : 0);
+    if (selector) selector.addEventListener("change", () => updateSelected(selector.selectedIndex));
+
+    const note = document.createElement("p");
+    note.className = "aiod-download-footnote";
+    note.textContent = "Only formats and file sizes supplied by the authorized source are shown. Open / save uses the original source URL; the host and browser control the final download behavior. AIOD does not re-host or convert this file.";
+    section.appendChild(note);
+    resultBox.appendChild(section);
   }
 
   function showOtherDirectFilePreview(media, hostname, message, downloadOptions) {
