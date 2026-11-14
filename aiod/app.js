@@ -51,6 +51,10 @@
       .aiod-video-meta{font-size:.88em;opacity:.78;line-height:1.5}
       .aiod-video-tag{display:inline-block;font-size:.72em;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#20cbb6;margin-bottom:5px}
       .aiod-status-note{font-size:.88em;line-height:1.5;margin-top:10px}
+      .aiod-audio-preview{display:grid;gap:9px;margin-top:12px;padding:12px;border:1px solid var(--border,#2b3650);border-radius:12px;background:rgba(127,127,127,.06)}
+      .aiod-audio-preview strong{color:var(--text)}
+      .aiod-audio-preview audio{display:block;width:100%;max-width:100%;margin-top:3px}
+      .aiod-audio-meta{font-size:.82em;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
       @media(max-width:520px){.aiod-video-preview{grid-template-columns:1fr}.aiod-video-preview img{max-width:100%}}
     `;
     document.head.appendChild(style);
@@ -133,6 +137,68 @@
       section.appendChild(note);
       resultBox.appendChild(section);
     }
+  }
+
+  function showAudioPreview(media, hostname, message, downloadOptions) {
+    if (!resultBox) return;
+
+    resultBox.replaceChildren();
+    resultBox.hidden = false;
+    resultBox.classList.remove("error");
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Source recognized: Direct media file";
+    resultBox.appendChild(heading);
+
+    const note = document.createElement("p");
+    note.className = "aiod-status-note";
+    note.textContent = message || "An audio file was verified from its original host.";
+    resultBox.appendChild(note);
+
+    const option = Array.isArray(downloadOptions)
+      ? downloadOptions.find((item) => item && typeof item.url === "string")
+      : null;
+    if (!option) return;
+
+    let safeUrl;
+    try {
+      safeUrl = new URL(option.url);
+      if (!["https:", "http:"].includes(safeUrl.protocol)) return;
+    } catch (_) { return; }
+
+    const preview = document.createElement("div");
+    preview.className = "aiod-audio-preview";
+
+    const title = document.createElement("strong");
+    title.textContent = option.filename || media.filename || ("Original " + (media.format || "audio") + " file");
+    preview.appendChild(title);
+
+    const meta = document.createElement("div");
+    const sizeBytes = Number.isSafeInteger(option.sizeBytes) && option.sizeBytes >= 0
+      ? option.sizeBytes
+      : null;
+    const sizeLabel = sizeBytes === null
+      ? "Size not provided by source"
+      : sizeBytes < 1024 * 1024
+        ? (sizeBytes / 1024).toFixed(1) + " KB"
+        : (sizeBytes / (1024 * 1024)).toFixed(2) + " MB";
+    meta.className = "aiod-audio-meta";
+    meta.textContent = [
+      media.format || option.format || "Audio",
+      media.mimeType || option.mimeType || "",
+      sizeLabel,
+      hostname ? "Host: " + hostname : ""
+    ].filter(Boolean).join(" · ");
+    preview.appendChild(meta);
+
+    const player = document.createElement("audio");
+    player.controls = true;
+    player.preload = "metadata";
+    player.src = safeUrl.href;
+    player.setAttribute("aria-label", "Preview authorized audio file");
+    preview.appendChild(player);
+
+    resultBox.appendChild(preview);
   }
 
   function showVideoPreview(video, platform, hostname, message, downloadAvailable) {
@@ -290,11 +356,15 @@
           );
           showDownloadOptions(data.downloadOptions);
         } else if (data.downloadAvailable === true || (Array.isArray(data.downloadOptions) && data.downloadOptions.length)) {
-          showResult(
-            data.message || "An authorized source file is available.",
-            false,
-            `Source recognized: ${platform}`
-          );
+          if (data.media && data.media.kind === "audio") {
+            showAudioPreview(data.media, hostname, data.message, data.downloadOptions);
+          } else {
+            showResult(
+              data.message || "An authorized source file is available.",
+              false,
+              `Source recognized: ${platform}`
+            );
+          }
           showDownloadOptions(data.downloadOptions);
         } else {
           showResult(
