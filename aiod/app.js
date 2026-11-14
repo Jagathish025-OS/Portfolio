@@ -48,6 +48,12 @@
       .aiod-tools-status{margin-top:12px;padding:10px 12px;border:1px solid var(--border,#2b3650);border-radius:10px;font-size:.78rem;line-height:1.55;color:var(--muted,#9aa6bd);overflow-wrap:anywhere}
       .aiod-tools-status.is-ready{border-color:rgba(32,203,182,.45);color:#20cbb6}
       .aiod-tools-status.is-pending{border-color:rgba(245,158,11,.28)}
+      .aiod-processing-panel{display:grid;gap:10px;margin-top:12px;padding:13px;border:1px solid var(--border,#2b3650);border-radius:12px;background:rgba(127,127,127,.05)}
+      .aiod-processing-panel h3{margin:0;font-size:1rem}
+      .aiod-consent{display:flex;gap:9px;align-items:flex-start;font-size:.85rem;line-height:1.45;color:var(--muted)}
+      .aiod-consent input{margin-top:3px;accent-color:#7c5cff}
+      .aiod-conversion-controls{display:grid;gap:9px}
+      .aiod-conversion-controls>label{font-size:.85rem;font-weight:600}
       .aiod-video-preview{display:grid;grid-template-columns:minmax(110px,180px) 1fr;gap:14px;align-items:start;margin-top:12px;padding:12px;border:1px solid var(--border,#2b3650);border-radius:14px;background:rgba(127,127,127,.06)}
       .aiod-video-preview img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:9px;background:#111827}
       .aiod-video-title{font-weight:700;line-height:1.4;margin:2px 0 7px;overflow-wrap:anywhere}
@@ -108,6 +114,134 @@
     }
   }
   refreshMediaToolsStatus();
+
+  function addAuthorizedProcessingPanel(sourceUrl) {
+    if (!resultBox) return;
+    const sourceHost = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\\./, "");
+    const blocked = ["youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch", "tiktok.com", "twitter.com", "x.com"];
+    if (blocked.some((domain) => sourceHost === domain || sourceHost.endsWith("." + domain))) return;
+
+    const panel = document.createElement("section");
+    panel.className = "aiod-processing-panel";
+    const heading = document.createElement("h3");
+    heading.textContent = "Process authorized media";
+    panel.appendChild(heading);
+
+    const intro = document.createElement("p");
+    intro.className = "aiod-status-note";
+    intro.textContent = "For media you own or have permission to download. The source host must be configured in the backend allowlist.";
+    panel.appendChild(intro);
+
+    const consentLabel = document.createElement("label");
+    consentLabel.className = "aiod-consent";
+    const consent = document.createElement("input");
+    consent.type = "checkbox";
+    const consentText = document.createElement("span");
+    consentText.textContent = "I own this media or have permission to download and process it.";
+    consentLabel.append(consent, consentText);
+    panel.appendChild(consentLabel);
+
+    const extractButton = document.createElement("button");
+    extractButton.type = "button";
+    extractButton.className = "aiod-watch-link";
+    extractButton.textContent = "Extract media information";
+    extractButton.disabled = true;
+    consent.addEventListener("change", () => { extractButton.disabled = !consent.checked; });
+    panel.appendChild(extractButton);
+
+    const feedback = document.createElement("p");
+    feedback.className = "aiod-status-note";
+    feedback.setAttribute("aria-live", "polite");
+    panel.appendChild(feedback);
+
+    const conversion = document.createElement("div");
+    conversion.className = "aiod-conversion-controls";
+    conversion.hidden = true;
+    const formatsLabel = document.createElement("label");
+    formatsLabel.textContent = "Output format";
+    const outputFormat = document.createElement("select");
+    outputFormat.className = "aiod-format-select";
+    [["mp4", "MP4 video"], ["mp3", "MP3 audio"]].forEach(([value, label]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      outputFormat.appendChild(option);
+    });
+    formatsLabel.appendChild(outputFormat);
+    const formatSummary = document.createElement("p");
+    formatSummary.className = "aiod-audio-meta";
+    const processButton = document.createElement("button");
+    processButton.type = "button";
+    processButton.className = "aiod-watch-link";
+    processButton.textContent = "Convert and download";
+    conversion.append(formatsLabel, formatSummary, processButton);
+    panel.appendChild(conversion);
+    resultBox.appendChild(panel);
+
+    let extracted = false;
+    extractButton.addEventListener("click", async () => {
+      if (!consent.checked) return;
+      extractButton.disabled = true;
+      feedback.textContent = "Extracting metadata with yt-dlp…";
+      conversion.hidden = true;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/media/extract`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ url: sourceUrl, authorized: true })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok !== true) throw new Error(data.message || `Extraction failed (HTTP ${response.status}).`);
+        const formats = Array.isArray(data.formats) ? data.formats : [];
+        formatSummary.textContent = formats.length
+          ? `Source: ${data.source && data.source.title ? data.source.title : "Media"} · ${formats.length} real source format(s) found. Conversion uses the best available source stream.`
+          : "Metadata was extracted, but the source did not report separate downloadable formats.";
+        conversion.hidden = false;
+        extracted = true;
+        feedback.textContent = "Metadata extracted successfully. Choose MP4 or MP3 to continue.";
+      } catch (error) {
+        extracted = false;
+        feedback.textContent = error.message || "Could not extract this source.";
+      } finally {
+        extractButton.disabled = !consent.checked;
+      }
+    });
+
+    processButton.addEventListener("click", async () => {
+      if (!consent.checked || !extracted) return;
+      processButton.disabled = true;
+      feedback.textContent = "Processing media with yt-dlp and FFmpeg. Large files may take several minutes…";
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/media/process`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: sourceUrl, authorized: true, outputFormat: outputFormat.value })
+        });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Processing failed (HTTP ${response.status}).`);
+        }
+        const blob = await response.blob();
+        if (!blob.size) throw new Error("The server returned an empty file.");
+        const objectUrl = URL.createObjectURL(blob);
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const match = disposition.match(/filename="([^"]+)"/i);
+        const filename = match ? match[1] : `aiod-output.${outputFormat.value}`;
+        const download = document.createElement("a");
+        download.href = objectUrl;
+        download.download = filename;
+        document.body.appendChild(download);
+        download.click();
+        download.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+        feedback.textContent = `Finished. Your ${outputFormat.value.toUpperCase()} download has started.`;
+      } catch (error) {
+        feedback.textContent = error.message || "Media processing failed.";
+      } finally {
+        processButton.disabled = false;
+      }
+    });
+  }
 
   function clearResult() {
     if (!resultBox) return;
@@ -656,6 +790,7 @@
           resultBox.appendChild(document.createElement("br"));
           resultBox.appendChild(detail);
         }
+        addAuthorizedProcessingPanel(url.href);
       } catch (error) {
         let message;
         if (error.name === "AbortError") {
