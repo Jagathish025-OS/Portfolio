@@ -117,7 +117,7 @@
 
   function addAuthorizedProcessingPanel(sourceUrl) {
     if (!resultBox) return;
-    const sourceHost = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\\./, "");
+    const sourceHost = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, "");
     const blocked = ["youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch", "tiktok.com", "twitter.com", "x.com"];
     if (blocked.some((domain) => sourceHost === domain || sourceHost.endsWith("." + domain))) return;
 
@@ -646,7 +646,7 @@
       let safeWatchUrl = null;
       try {
         const parsed = new URL(sourceUrl);
-        const hostName = parsed.hostname.toLowerCase().replace(/^www\\./, "");
+        const hostName = parsed.hostname.toLowerCase().replace(/^www\./, "");
         if (["youtube.com", "m.youtube.com", "youtu.be"].includes(hostName)) safeWatchUrl = parsed.href;
       } catch (_) {}
       if (safeWatchUrl) {
