@@ -55,6 +55,10 @@
       .aiod-audio-preview strong{color:var(--text)}
       .aiod-audio-preview audio{display:block;width:100%;max-width:100%;margin-top:3px}
       .aiod-audio-meta{font-size:.82em;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
+      .aiod-direct-video{display:grid;gap:9px;margin-top:12px;padding:12px;border:1px solid var(--border,#2b3650);border-radius:12px;background:rgba(127,127,127,.06)}
+      .aiod-direct-video strong{color:var(--text)}
+      .aiod-direct-video video{display:block;width:100%;max-height:420px;aspect-ratio:16/9;object-fit:contain;background:#05070d;border-radius:9px}
+      .aiod-direct-video-meta{font-size:.82em;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
       @media(max-width:520px){.aiod-video-preview{grid-template-columns:1fr}.aiod-video-preview img{max-width:100%}}
     `;
     document.head.appendChild(style);
@@ -197,6 +201,94 @@
     player.src = safeUrl.href;
     player.setAttribute("aria-label", "Preview authorized audio file");
     preview.appendChild(player);
+
+    resultBox.appendChild(preview);
+  }
+
+  function showDirectVideoPreview(media, hostname, message, downloadOptions) {
+    if (!resultBox) return;
+
+    resultBox.replaceChildren();
+    resultBox.hidden = false;
+    resultBox.classList.remove("error");
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Source recognized: Direct media file";
+    resultBox.appendChild(heading);
+
+    const note = document.createElement("p");
+    note.className = "aiod-status-note";
+    note.textContent = message || "A direct video file was verified from its original host.";
+    resultBox.appendChild(note);
+
+    const option = Array.isArray(downloadOptions)
+      ? downloadOptions.find((item) => item && typeof item.url === "string")
+      : null;
+    if (!option) return;
+
+    let safeUrl;
+    try {
+      safeUrl = new URL(option.url);
+      if (!["https:", "http:"].includes(safeUrl.protocol)) return;
+    } catch (_) { return; }
+
+    const preview = document.createElement("div");
+    preview.className = "aiod-direct-video";
+
+    const title = document.createElement("strong");
+    title.textContent = option.filename || media.filename || ("Original " + (media.format || "video") + " file");
+    preview.appendChild(title);
+
+    const video = document.createElement("video");
+    video.controls = true;
+    video.preload = "metadata";
+    video.playsInline = true;
+    video.src = safeUrl.href;
+    video.setAttribute("aria-label", "Preview authorized video file");
+    preview.appendChild(video);
+
+    const meta = document.createElement("div");
+    meta.className = "aiod-direct-video-meta";
+    const sizeBytes = Number.isSafeInteger(option.sizeBytes) && option.sizeBytes >= 0
+      ? option.sizeBytes
+      : (Number.isSafeInteger(media.sizeBytes) && media.sizeBytes >= 0 ? media.sizeBytes : null);
+    const sizeLabel = sizeBytes === null
+      ? "Size not provided by source"
+      : sizeBytes < 1024 * 1024
+        ? (sizeBytes / 1024).toFixed(1) + " KB"
+        : (sizeBytes / (1024 * 1024)).toFixed(2) + " MB";
+    const details = [
+      media.format || option.format || "Video",
+      media.mimeType || option.mimeType || "",
+      sizeLabel,
+      hostname ? "Host: " + hostname : ""
+    ];
+    meta.textContent = details.filter(Boolean).join(" · ");
+    preview.appendChild(meta);
+
+    video.addEventListener("loadedmetadata", () => {
+      const duration = Number.isFinite(video.duration)
+        ? Math.floor(video.duration / 60) + ":" + String(Math.floor(video.duration % 60)).padStart(2, "0")
+        : "";
+      const dimensions = video.videoWidth && video.videoHeight
+        ? video.videoWidth + " × " + video.videoHeight
+        : "";
+      const updated = [
+        media.format || option.format || "Video",
+        dimensions,
+        duration ? "Duration " + duration : "",
+        sizeLabel,
+        hostname ? "Host: " + hostname : ""
+      ];
+      meta.textContent = updated.filter(Boolean).join(" · ");
+    }, { once: true });
+
+    video.addEventListener("error", () => {
+      const warning = document.createElement("p");
+      warning.className = "aiod-status-note";
+      warning.textContent = "The browser could not preview this video format. Use Open / save below to open the original file from its host.";
+      preview.appendChild(warning);
+    }, { once: true });
 
     resultBox.appendChild(preview);
   }
@@ -346,7 +438,10 @@
         }
 
         const video = data.video && typeof data.video === "object" ? data.video : null;
-        if (video && video.available === true) {
+        if (data.media && data.media.kind === "video" && data.downloadAvailable === true) {
+          showDirectVideoPreview(data.media, hostname, data.message, data.downloadOptions);
+          showDownloadOptions(data.downloadOptions);
+        } else if (video && video.available === true) {
           showVideoPreview(
             video,
             platform,
