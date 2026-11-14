@@ -507,10 +507,10 @@
         if (data.media && data.media.kind === "video" && data.downloadAvailable === true) {
           showDirectVideoPreview(data.media, hostname, data.message, data.downloadOptions);
           showDownloadOptions(data.downloadOptions);
- else if (data.media && ["image", "document", "file"].includes(data.media.kind) && data.downloadAvailable === true) {
+        } else if (data.media && ["image", "document", "file"].includes(data.media.kind) && data.downloadAvailable === true) {
           showOtherDirectFilePreview(data.media, hostname, data.message, data.downloadOptions);
           showDownloadOptions(data.downloadOptions);
-        }        } else if (video && video.available === true) {
+        } else if (video && video.available === true) {
           showVideoPreview(
             video,
             platform,
@@ -519,16 +519,15 @@
             data.downloadAvailable === true
           );
           showDownloadOptions(data.downloadOptions);
+        } else if (data.media && data.media.kind === "audio" && data.downloadAvailable === true) {
+          showAudioPreview(data.media, hostname, data.message, data.downloadOptions);
+          showDownloadOptions(data.downloadOptions);
         } else if (data.downloadAvailable === true || (Array.isArray(data.downloadOptions) && data.downloadOptions.length)) {
-          if (data.media && data.media.kind === "audio") {
-            showAudioPreview(data.media, hostname, data.message, data.downloadOptions);
-          } else {
-            showResult(
-              data.message || "An authorized source file is available.",
-              false,
-              `Source recognized: ${platform}`
-            );
-          }
+          showResult(
+            data.message || "An authorized source file is available.",
+            false,
+            `Source recognized: ${platform}`
+          );
           showDownloadOptions(data.downloadOptions);
         } else {
           showResult(
