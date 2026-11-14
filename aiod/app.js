@@ -119,13 +119,22 @@
     if (!resultBox) return;
     const sourceHost = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, "");
     const blocked = ["youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch", "tiktok.com", "twitter.com", "x.com"];
-    if (blocked.some((domain) => sourceHost === domain || sourceHost.endsWith("." + domain))) return;
+    const isBlockedSource = blocked.some((domain) => sourceHost === domain || sourceHost.endsWith("." + domain));
 
     const panel = document.createElement("section");
     panel.className = "aiod-processing-panel";
     const heading = document.createElement("h3");
-    heading.textContent = "Process authorized media";
+    heading.textContent = isBlockedSource ? "Media processing unavailable for this source" : "Process authorized media";
     panel.appendChild(heading);
+
+    if (isBlockedSource) {
+      const notice = document.createElement("p");
+      notice.className = "aiod-status-note";
+      notice.textContent = "AIOD currently supports processing only from configured, authorized source domains. This platform is not enabled for extraction here. You can still use the source's official download or export options.";
+      panel.appendChild(notice);
+      resultBox.appendChild(panel);
+      return;
+    }
 
     const intro = document.createElement("p");
     intro.className = "aiod-status-note";
