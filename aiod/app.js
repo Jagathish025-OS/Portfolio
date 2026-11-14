@@ -168,13 +168,22 @@
       outputFormat.appendChild(option);
     });
     formatsLabel.appendChild(outputFormat);
+    const qualityLabel = document.createElement("label");
+    qualityLabel.textContent = "Video quality (available source resolutions)";
+    const qualitySelect = document.createElement("select");
+    qualitySelect.className = "aiod-format-select";
+    const bestOption = document.createElement("option");
+    bestOption.value = "";
+    bestOption.textContent = "Best available";
+    qualitySelect.appendChild(bestOption);
+    qualityLabel.appendChild(qualitySelect);
     const formatSummary = document.createElement("p");
     formatSummary.className = "aiod-audio-meta";
     const processButton = document.createElement("button");
     processButton.type = "button";
     processButton.className = "aiod-watch-link";
     processButton.textContent = "Convert and download";
-    conversion.append(formatsLabel, formatSummary, processButton);
+    conversion.append(formatsLabel, qualityLabel, formatSummary, processButton);
     panel.appendChild(conversion);
     resultBox.appendChild(panel);
 
@@ -193,8 +202,19 @@
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.ok !== true) throw new Error(data.message || `Extraction failed (HTTP ${response.status}).`);
         const formats = Array.isArray(data.formats) ? data.formats : [];
+        const heights = Array.from(new Set(formats
+          .filter((item) => item && item.hasVideo === true && Number.isInteger(item.height) && item.height >= 144)
+          .map((item) => item.height))).sort((a, b) => a - b);
+        qualitySelect.replaceChildren(bestOption);
+        heights.forEach((height) => {
+          const option = document.createElement("option");
+          option.value = String(height);
+          option.textContent = height + "p";
+          qualitySelect.appendChild(option);
+        });
+        qualityLabel.hidden = heights.length === 0;
         formatSummary.textContent = formats.length
-          ? `Source: ${data.source && data.source.title ? data.source.title : "Media"} · ${formats.length} real source format(s) found. Conversion uses the best available source stream.`
+          ? `Source: ${data.source && data.source.title ? data.source.title : "Media"} · ${formats.length} real source format(s) found · ${heights.length ? heights.join("p, ") + "p video heights available" : "no separate video resolutions reported"}.`
           : "Metadata was extracted, but the source did not report separate downloadable formats.";
         conversion.hidden = false;
         extracted = true;
@@ -215,7 +235,7 @@
         const response = await fetch(`${API_BASE_URL}/api/media/process`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: sourceUrl, authorized: true, outputFormat: outputFormat.value })
+          body: JSON.stringify({ url: sourceUrl, authorized: true, outputFormat: outputFormat.value, maxHeight: outputFormat.value === "mp4" && qualitySelect.value ? Number(qualitySelect.value) : undefined })
         });
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
