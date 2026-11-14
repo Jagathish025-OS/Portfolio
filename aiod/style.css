@@ -56,3 +56,9 @@ html[data-theme="light"]{color-scheme:light;--bg:#f6f7fb;--surface:rgba(255,255,
 .aiod-selected-download{margin-top:10px}
 .aiod-selected-download .aiod-download-link{white-space:nowrap}
 @media(max-width:520px){.aiod-selected-download{align-items:stretch}.aiod-selected-download .aiod-download-link{width:100%;text-align:center}}
+
+
+/* YouTube preview actions and truthful format availability */
+.aiod-youtube-actions{display:grid;gap:8px;margin-top:12px}
+.aiod-watch-link{display:inline-flex;align-items:center;justify-content:center;justify-self:start;padding:9px 13px;border-radius:9px;background:linear-gradient(115deg,#8b5cf6,#6556e8);color:#fff;font-size:11px;font-weight:750}
+.aiod-format-unavailable{margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--muted);font-size:10px;line-height:1.6}
