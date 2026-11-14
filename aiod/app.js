@@ -402,7 +402,7 @@
     resultBox.appendChild(preview);
   }
 
-  function showVideoPreview(video, platform, hostname, message, downloadAvailable) {
+  function showVideoPreview(video, platform, hostname, message, downloadAvailable, sourceUrl) {
     if (!resultBox) return;
 
     resultBox.replaceChildren();
@@ -457,8 +457,34 @@
     note.className = "aiod-status-note";
     note.textContent = message || (downloadAvailable
       ? "An authorized download provider is available."
-      : "Video details loaded. Downloading is not enabled because an authorized provider has not been configured.");
+      : "Video details loaded. No authorized download formats were supplied for this video.");
     resultBox.appendChild(note);
+
+    if (!downloadAvailable && platform === "YouTube") {
+      const actions = document.createElement("div");
+      actions.className = "aiod-youtube-actions";
+      const watch = document.createElement("a");
+      let safeWatchUrl = null;
+      try {
+        const parsed = new URL(sourceUrl);
+        const hostName = parsed.hostname.toLowerCase().replace(/^www\\./, "");
+        if (["youtube.com", "m.youtube.com", "youtu.be"].includes(hostName)) safeWatchUrl = parsed.href;
+      } catch (_) {}
+      if (safeWatchUrl) {
+        watch.href = safeWatchUrl;
+        watch.target = "_blank";
+        watch.rel = "noopener noreferrer";
+        watch.className = "aiod-watch-link";
+        watch.textContent = "Watch on YouTube ↗";
+        actions.appendChild(watch);
+      }
+
+      const availability = document.createElement("p");
+      availability.className = "aiod-format-unavailable";
+      availability.textContent = "Video quality and file-size choices will appear here only when an authorized provider supplies real downloadable formats. AIOD will not display invented quality options.";
+      actions.appendChild(availability);
+      resultBox.appendChild(actions);
+    }
   }
 
   if (clearBtn && input && resultBox) {
@@ -559,7 +585,8 @@
             platform,
             hostname,
             data.message,
-            data.downloadAvailable === true
+            data.downloadAvailable === true,
+            url.href
           );
           showDownloadOptions(data.downloadOptions);
         } else if (data.media && data.media.kind === "audio" && data.downloadAvailable === true) {
