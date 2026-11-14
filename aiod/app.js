@@ -101,7 +101,19 @@
       label.textContent = option.label || `Original ${option.format || "media"} file`;
       details.appendChild(label);
       const meta = document.createElement("span");
-      meta.textContent = option.description || "Original source file · quality and size set by the host";
+      const sizeBytes = Number.isSafeInteger(option.sizeBytes) && option.sizeBytes >= 0 ? option.sizeBytes : null;
+      const actualSize = sizeBytes === null
+        ? "Size not provided by source"
+        : sizeBytes < 1024 * 1024
+          ? (sizeBytes / 1024).toFixed(1) + " KB"
+          : (sizeBytes / (1024 * 1024)).toFixed(2) + " MB";
+      const mimeType = typeof option.mimeType === "string" ? option.mimeType : "";
+      const filename = typeof option.filename === "string" ? option.filename : "";
+      const detailsText = [option.description, filename, mimeType, actualSize]
+        .filter(Boolean)
+        .filter((value, index, list) => list.indexOf(value) === index)
+        .join(" · ");
+      meta.textContent = detailsText || "Original source file · size not provided by host";
       details.appendChild(meta);
       const link = document.createElement("a");
       link.href = safeUrl.href;
