@@ -78,6 +78,51 @@
     resultBox.appendChild(document.createTextNode(message));
   }
 
+  function showDownloadOptions(options) {
+    if (!resultBox || !Array.isArray(options) || !options.length) return;
+    const section = document.createElement("section");
+    section.className = "aiod-download-options";
+    const heading = document.createElement("h3");
+    heading.textContent = "Available authorized file";
+    section.appendChild(heading);
+
+    options.forEach((option) => {
+      if (!option || typeof option.url !== "string") return;
+      let safeUrl;
+      try {
+        safeUrl = new URL(option.url);
+        if (safeUrl.protocol !== "https:" && safeUrl.protocol !== "http:") return;
+      } catch (_) { return; }
+
+      const row = document.createElement("div");
+      row.className = "aiod-download-row";
+      const details = document.createElement("div");
+      const label = document.createElement("strong");
+      label.textContent = option.label || `Original ${option.format || "media"} file`;
+      details.appendChild(label);
+      const meta = document.createElement("span");
+      meta.textContent = option.description || "Original source file · quality and size set by the host";
+      details.appendChild(meta);
+      const link = document.createElement("a");
+      link.href = safeUrl.href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Open / save ↗";
+      link.className = "aiod-download-link";
+      link.setAttribute("aria-label", `Open or save ${label.textContent}`);
+      row.append(details, link);
+      section.appendChild(row);
+    });
+
+    if (section.querySelector("a")) {
+      const note = document.createElement("p");
+      note.className = "aiod-download-footnote";
+      note.textContent = "This opens the original file from its host. Your browser or the host decides whether it downloads directly or opens a preview. AIOD does not re-host or convert this file.";
+      section.appendChild(note);
+      resultBox.appendChild(section);
+    }
+  }
+
   function showVideoPreview(video, platform, hostname, message, downloadAvailable) {
     if (!resultBox) return;
 
@@ -231,12 +276,14 @@
             data.message,
             data.downloadAvailable === true
           );
-        } else if (data.downloadAvailable === true) {
+          showDownloadOptions(data.downloadOptions);
+        } else if (data.downloadAvailable === true || (Array.isArray(data.downloadOptions) && data.downloadOptions.length)) {
           showResult(
-            data.message || "An authorized provider is available for this source. Follow its permitted download process.",
+            data.message || "An authorized source file is available.",
             false,
             `Source recognized: ${platform}`
           );
+          showDownloadOptions(data.downloadOptions);
         } else {
           showResult(
             `${data.message || "The source was recognized successfully."} No download is available yet because an authorized provider has not been configured.`,
