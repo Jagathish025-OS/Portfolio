@@ -14,3 +14,36 @@ html[data-theme="light"]{color-scheme:light;--bg:#f6f7fb;--surface:rgba(255,255,
 .aiod-download-link{flex-shrink:0;padding:9px 12px;border-radius:9px;background:linear-gradient(115deg,#8b5cf6,#6556e8);color:#fff;font-size:11px;font-weight:750}
 .aiod-download-footnote{font-size:10px;line-height:1.55;color:var(--muted);margin:9px 0 0}
 @media(max-width:520px){.aiod-download-row{align-items:flex-start;flex-direction:column}.aiod-download-link{width:100%;text-align:center}}
+
+
+/* Additional direct image, document and file previews */
+.aiod-other-file-preview {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border, #2b3650);
+  border-radius: 12px;
+  background: rgba(127, 127, 127, .06);
+  min-width: 0;
+}
+.aiod-other-file-preview > img {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  width: auto;
+  height: auto;
+  margin: 4px auto 0;
+  border-radius: 9px;
+}
+.aiod-other-file-preview > iframe {
+  display: block;
+  width: 100%;
+  min-height: 420px;
+  border: 0;
+  border-radius: 9px;
+  background: #fff;
+}
+@media (max-width: 560px) {
+  .aiod-other-file-preview > iframe { min-height: 320px; }
+}
