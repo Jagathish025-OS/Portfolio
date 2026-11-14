@@ -143,6 +143,72 @@
     }
   }
 
+  function showOtherDirectFilePreview(media, hostname, message, downloadOptions) {
+    if (!resultBox) return;
+    resultBox.replaceChildren();
+    resultBox.hidden = false;
+    resultBox.classList.remove("error");
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Source recognized: Direct file";
+    resultBox.appendChild(heading);
+
+    const note = document.createElement("p");
+    note.className = "aiod-status-note";
+    note.textContent = message || "The original file was verified from its host.";
+    resultBox.appendChild(note);
+
+    const option = Array.isArray(downloadOptions)
+      ? downloadOptions.find((item) => item && typeof item.url === "string")
+      : null;
+    if (!option) return;
+
+    let safeUrl;
+    try {
+      safeUrl = new URL(option.url);
+      if (!["https:", "http:"].includes(safeUrl.protocol)) return;
+    } catch (_) { return; }
+
+    const filename = option.filename || media.filename || ("original." + String(media.format || "file").toLowerCase());
+    const preview = document.createElement("div");
+    preview.className = "aiod-other-file-preview";
+
+    const title = document.createElement("strong");
+    title.textContent = filename;
+    preview.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.className = "aiod-audio-meta";
+    const sizeBytes = Number.isSafeInteger(option.sizeBytes) && option.sizeBytes >= 0 ? option.sizeBytes : null;
+    const sizeLabel = sizeBytes === null
+      ? "Size not provided by source"
+      : sizeBytes < 1024 * 1024
+        ? (sizeBytes / 1024).toFixed(1) + " KB"
+        : (sizeBytes / (1024 * 1024)).toFixed(2) + " MB";
+    meta.textContent = [media.format || "File", media.mimeType || option.mimeType || "", sizeLabel, hostname ? "Host: " + hostname : ""]
+      .filter(Boolean).join(" · ");
+    preview.appendChild(meta);
+
+    if (media.kind === "image" && media.mimeType !== "image/svg+xml") {
+      const image = document.createElement("img");
+      image.src = safeUrl.href;
+      image.alt = filename;
+      image.loading = "lazy";
+      image.referrerPolicy = "no-referrer";
+      preview.appendChild(image);
+    } else if (media.kind === "document" && media.mimeType === "application/pdf") {
+      const frame = document.createElement("iframe");
+      frame.src = safeUrl.href;
+      frame.title = "PDF preview: " + filename;
+      frame.loading = "lazy";
+      frame.referrerPolicy = "no-referrer";
+      frame.setAttribute("sandbox", "");
+      preview.appendChild(frame);
+    }
+
+    resultBox.appendChild(preview);
+  }
+
   function showAudioPreview(media, hostname, message, downloadOptions) {
     if (!resultBox) return;
 
@@ -441,7 +507,10 @@
         if (data.media && data.media.kind === "video" && data.downloadAvailable === true) {
           showDirectVideoPreview(data.media, hostname, data.message, data.downloadOptions);
           showDownloadOptions(data.downloadOptions);
-        } else if (video && video.available === true) {
+ else if (data.media && ["image", "document", "file"].includes(data.media.kind) && data.downloadAvailable === true) {
+          showOtherDirectFilePreview(data.media, hostname, data.message, data.downloadOptions);
+          showDownloadOptions(data.downloadOptions);
+        }        } else if (video && video.available === true) {
           showVideoPreview(
             video,
             platform,
