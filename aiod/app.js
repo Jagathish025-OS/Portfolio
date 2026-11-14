@@ -45,6 +45,9 @@
     const style = document.createElement("style");
     style.id = "aiod-preview-styles";
     style.textContent = `
+      .aiod-tools-status{margin-top:12px;padding:10px 12px;border:1px solid var(--border,#2b3650);border-radius:10px;font-size:.78rem;line-height:1.55;color:var(--muted,#9aa6bd);overflow-wrap:anywhere}
+      .aiod-tools-status.is-ready{border-color:rgba(32,203,182,.45);color:#20cbb6}
+      .aiod-tools-status.is-pending{border-color:rgba(245,158,11,.28)}
       .aiod-video-preview{display:grid;grid-template-columns:minmax(110px,180px) 1fr;gap:14px;align-items:start;margin-top:12px;padding:12px;border:1px solid var(--border,#2b3650);border-radius:14px;background:rgba(127,127,127,.06)}
       .aiod-video-preview img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:9px;background:#111827}
       .aiod-video-title{font-weight:700;line-height:1.4;margin:2px 0 7px;overflow-wrap:anywhere}
@@ -63,6 +66,48 @@
     `;
     document.head.appendChild(style);
   }
+
+  // Show the live media-processing capability state from the Render backend.
+  const mediaToolsStatus = document.createElement("div");
+  mediaToolsStatus.className = "aiod-tools-status";
+  mediaToolsStatus.setAttribute("role", "status");
+  mediaToolsStatus.setAttribute("aria-live", "polite");
+  mediaToolsStatus.textContent = "Checking media-processing tools…";
+  const downloaderPanel = document.getElementById("downloader");
+  const legalNote = downloaderPanel && downloaderPanel.querySelector(".legal-note");
+  if (legalNote) legalNote.insertAdjacentElement("beforebegin", mediaToolsStatus);
+
+  async function refreshMediaToolsStatus() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/media/tools`, {
+        headers: { "Accept": "application/json" },
+        mode: "cors",
+        credentials: "omit"
+      });
+      if (!response.ok) throw new Error("Status unavailable");
+      const payload = await response.json();
+      const tools = payload && payload.tools ? payload.tools : {};
+      const ytDlpReady = tools.ytDlp === true;
+      const ffmpegReady = tools.ffmpeg === true;
+      const domainsReady = Number(tools.configuredDomains) > 0;
+      mediaToolsStatus.classList.toggle("is-ready", payload.ready === true);
+      mediaToolsStatus.classList.toggle("is-pending", payload.ready !== true);
+      const state = (ok, name) => (ok ? "✓ " : "○ ") + name;
+      mediaToolsStatus.textContent = [
+        "Media engine",
+        state(ytDlpReady, "yt-dlp"),
+        state(ffmpegReady, "FFmpeg"),
+        state(domainsReady, "authorized sources")
+      ].join(" · ") + (payload.ready === true
+        ? " · Ready for configured sources"
+        : " · Direct file links remain available; source extraction needs an authorized domain allowlist.");
+    } catch (_) {
+      mediaToolsStatus.classList.remove("is-ready");
+      mediaToolsStatus.classList.add("is-pending");
+      mediaToolsStatus.textContent = "Media engine status could not be checked. Direct media-file links may still work.";
+    }
+  }
+  refreshMediaToolsStatus();
 
   function clearResult() {
     if (!resultBox) return;
