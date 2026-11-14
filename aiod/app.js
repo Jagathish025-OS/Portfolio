@@ -236,7 +236,8 @@
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.ok !== true) throw new Error(data.message || `Extraction failed (HTTP ${response.status}).`);
-        const formats = Array.isArray(data.formats) ? data.formats : [];\n        extractedFormats = formats;
+        const formats = Array.isArray(data.formats) ? data.formats : [];
+        extractedFormats = formats;
         const heights = Array.from(new Set(formats
           .filter((item) => item && item.hasVideo === true && Number.isInteger(item.height) && item.height >= 144)
           .map((item) => item.height))).sort((a, b) => a - b);
@@ -253,6 +254,7 @@
           : "Metadata was extracted, but the source did not report separate downloadable formats.";
         conversion.hidden = false;
         extracted = true;
+        updateSizeEstimate();
         feedback.textContent = "Metadata extracted successfully. Choose MP4 or MP3 to continue.";
       } catch (error) {
         extracted = false;
