@@ -118,13 +118,13 @@
   function addAuthorizedProcessingPanel(sourceUrl) {
     if (!resultBox) return;
     const sourceHost = new URL(sourceUrl).hostname.toLowerCase().replace(/^www\./, "");
-    const blocked = ["youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch", "tiktok.com", "twitter.com", "x.com"];
+    const blocked = ["instagram.com", "facebook.com", "fb.watch", "tiktok.com", "twitter.com", "x.com"];
     const isBlockedSource = blocked.some((domain) => sourceHost === domain || sourceHost.endsWith("." + domain));
 
     const panel = document.createElement("section");
     panel.className = "aiod-processing-panel";
     const heading = document.createElement("h3");
-    heading.textContent = isBlockedSource ? "Media processing unavailable for this source" : "Process authorized media";
+    heading.textContent = isBlockedSource ? "Media processing unavailable for this source" : (sourceHost === "youtube.com" || sourceHost.endsWith(".youtube.com") || sourceHost === "youtu.be" ? "Process Creative Commons YouTube media" : "Process authorized media");
     panel.appendChild(heading);
 
     if (isBlockedSource) {
@@ -138,7 +138,7 @@
 
     const intro = document.createElement("p");
     intro.className = "aiod-status-note";
-    intro.textContent = "For media you own or have permission to download. The source host must be configured in the backend allowlist.";
+    intro.textContent = (sourceHost === "youtube.com" || sourceHost.endsWith(".youtube.com") || sourceHost === "youtu.be") ? "YouTube processing is limited to videos yt-dlp identifies as Creative Commons licensed. Standard YouTube License videos will be declined. Other configured sources must be authorized for download." : "For media you own or have permission to download. The source host must be configured in the backend allowlist.";
     panel.appendChild(intro);
 
     const consentLabel = document.createElement("label");
@@ -146,7 +146,7 @@
     const consent = document.createElement("input");
     consent.type = "checkbox";
     const consentText = document.createElement("span");
-    consentText.textContent = "I own this media or have permission to download and process it.";
+    consentText.textContent = (sourceHost === "youtube.com" || sourceHost.endsWith(".youtube.com") || sourceHost === "youtu.be") ? "I will only process this video if it is explicitly marked with a reusable Creative Commons license." : "I own this media or have permission to download and process it.";
     consentLabel.append(consent, consentText);
     panel.appendChild(consentLabel);
 
